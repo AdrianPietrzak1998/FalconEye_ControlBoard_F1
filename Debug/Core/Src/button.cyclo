@@ -1,0 +1,14 @@
+button.c:12:6:ButtonInitKey	1
+button.c:22:6:ButtonSetDebounceTime	1
+button.c:27:6:ButtonSetLongPressedTime	1
+button.c:32:6:ButtonSetRepeatTime	1
+button.c:38:6:ButtonRegisterPressCallback	1
+button.c:43:6:ButtonRegisterLongPressedCallback	1
+button.c:48:6:ButtonRegisterRepeatCallback	1
+button.c:53:6:ButtonRegisterReleaseCallback	1
+button.c:58:6:ButtonIdleRoutine	2
+button.c:67:6:ButtonDebounceRoutine	4
+button.c:87:6:ButtonPressedRoutine	4
+button.c:104:6:ButtonRepeatRoutine	4
+button.c:120:6:ButtonReleaseRoutine	2
+button.c:130:6:ButtonTask	6
