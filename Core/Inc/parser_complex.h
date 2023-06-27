@@ -22,20 +22,25 @@ typedef enum{
 
 }ReceivedCommand_t;
 
-typedef void(*CommandFun_t)(void);
+typedef void(*CommandFun_t)();
 
 const struct Command{
 	ReceivedCommand_t CommandID;
 	CommandFun_t Action;
 	uint8_t CommandArgQ;
 };
-
-extern void all(void);
+//
+// extern declaration received function
+//
+extern void all(uint8_t x);
 extern void out(void);
 extern void pwm1(void);
 extern void pwm2(void);
 extern void pwm3(void);
 extern void pwm4(void);
+//
+//
+//
 
 
 void Parser_TakeLine(RingBuffer_t *Buff, uint8_t *Destination);

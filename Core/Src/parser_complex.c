@@ -15,7 +15,7 @@
 
 
 
-uint16_t ReceivedCommandArgument[16];
+int32_t ReceivedCommandArgument[16];
 
 struct Command CommandMapper[] = {
 		{ALL, all, 5},
@@ -63,6 +63,6 @@ void Parser_parse(uint8_t * DataToParse)
 			ReceivedCommandArgument[i] = atoi(ParsePointer);
 		}
 
-		CommandMapper[CommandID].Action();
+		CommandMapper[CommandID].Action(ReceivedCommandArgument[0], ReceivedCommandArgument[1], ReceivedCommandArgument[2]);
 	}
 }

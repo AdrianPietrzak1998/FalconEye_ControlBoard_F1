@@ -1,0 +1,10 @@
+../Core/Src/menu.c:49:6:HeaderDraw	56	static
+../Core/Src/menu.c:98:6:MenuNext	8	static
+../Core/Src/menu.c:125:6:MenuPrev	8	static
+../Core/Src/menu.c:154:6:MenuEnter	16	static
+../Core/Src/menu.c:185:6:MenuBack	8	static
+../Core/Src/menu.c:199:9:MenuGetIndex	24	static
+../Core/Src/menu.c:222:9:MenuGetLevel	24	static
+../Core/Src/menu.c:240:6:MenuRefresh	24	static
+../Core/Src/menu.c:309:6:ScrollString	24	static
+../Core/Src/menu.c:357:6:StateIndicator	24	static

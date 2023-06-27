@@ -8,6 +8,7 @@
 "./Core/Src/gpio.o"
 "./Core/Src/i2c.o"
 "./Core/Src/main.o"
+"./Core/Src/menu.o"
 "./Core/Src/parser_complex.o"
 "./Core/Src/ring_buffer.o"
 "./Core/Src/ssd1306.o"

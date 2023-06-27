@@ -40,6 +40,7 @@
 #include "GFX_BW.h"
 #include "fonts/fonts.h"
 #include "button.h"
+#include "menu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -72,7 +73,7 @@ uint8_t DataToTransmit;
 
 extern USBD_HandleTypeDef hUsbDeviceFS;
 
-uint32_t OldTick500ms, OldTick100ms;
+uint32_t OldTick500ms, OldTick100ms, OldTick50ms;
 
 int32_t Temp;
 float Temperature;
@@ -97,8 +98,10 @@ void GpioFLedToggle(void);
 
 void IntervalFunc500ms(void);
 void IntervalFunc100ms(void);
+void IntervalFunc50ms(void);
 
-void all(void);
+
+void all(uint8_t x);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -154,6 +157,8 @@ int main(void)
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
   OldTick500ms = HAL_GetTick();
+  OldTick100ms = HAL_GetTick();
+  OldTick50ms = HAL_GetTick();
 
   if (ds18b20_read_address(ds1) != HAL_OK)
   {
@@ -163,8 +168,21 @@ int main(void)
   ButtonInitKey(&KeyUp, BUTTON_UP_GPIO_Port, BUTTON_UP_Pin, 20, 1000, 500);
   ButtonInitKey(&KeyDown, BUTTON_DOWN_GPIO_Port, BUTTON_DOWN_Pin, 20, 1000, 500);
 
+  ButtonRegisterPressCallback(&KeyDown, MenuNext);
+  ButtonRegisterRepeatCallback(&KeyDown, MenuPrev);
+  ButtonRegisterPressCallback(&KeyUp, MenuEnter);
 
   SSD1306_Init(&hi2c1);
+
+  MenuRefresh();
+
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
+
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 100);
+
 
   /* USER CODE END 2 */
 
@@ -199,6 +217,7 @@ int main(void)
 
 	  IntervalFunc100ms();
 	  IntervalFunc500ms();
+	  IntervalFunc50ms();
 
 	  ButtonTask(&KeyDown);
 	  ButtonTask(&KeyUp);
@@ -281,20 +300,13 @@ static void MX_NVIC_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-void all(void)
+void all(uint8_t x)
 {
-	HAL_Delay(50);
+	HAL_Delay(x);
 }
 
 
-//void GpioELedToggle()
-//{
-//	GPIOE->ODR = GPIOE->ODR << 1;
-//	if(!(GPIOE->ODR <= 0x8000 && GPIOE->ODR >= 0x01))
-//	{
-//		GPIOE->ODR = 0x01;
-//	}
-//}
+
 void GpioFLedToggle()
 {
 	GPIOF->ODR = GPIOF->ODR << 1;
@@ -339,11 +351,24 @@ void IntervalFunc100ms(void)
 {
 	if(HAL_GetTick() - OldTick100ms >100)
 	{
-		OldTick100ms = HAL_GetTick();
 		UsbBuffWrite((char*)buff);
+		OldTick100ms = HAL_GetTick();
 	}
 
 }
+
+void IntervalFunc50ms(void)
+{
+	if(HAL_GetTick() - OldTick50ms >50)
+	{
+		ScrollString();
+		SSD1306_Display();
+
+		OldTick50ms = HAL_GetTick();
+	}
+
+}
+
 
 
 void HAL_I2C_MemTxCpltCallback(I2C_HandleTypeDef *hi2c)

@@ -1,0 +1,10 @@
+menu.c:49:6:HeaderDraw	10
+menu.c:98:6:MenuNext	4
+menu.c:125:6:MenuPrev	4
+menu.c:154:6:MenuEnter	7
+menu.c:185:6:MenuBack	2
+menu.c:199:9:MenuGetIndex	3
+menu.c:222:9:MenuGetLevel	3
+menu.c:240:6:MenuRefresh	8
+menu.c:309:6:ScrollString	7
+menu.c:357:6:StateIndicator	14

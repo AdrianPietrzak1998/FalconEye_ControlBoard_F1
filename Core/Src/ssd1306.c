@@ -12,6 +12,7 @@
 static I2C_HandleTypeDef *oled_i2c;
 
 static uint8_t buffer[SSD1306_BUFFER_SIZE];
+static uint8_t buffer_disp[SSD1306_BUFFER_SIZE];
 
 static void SSD1306_Command(uint8_t Command)
 {
@@ -23,10 +24,10 @@ static void SSD1306_Data(uint8_t *Data, uint16_t Size)
 #ifdef SSD1306_USE_DMA
 	if(oled_i2c -> hdmatx -> State == HAL_DMA_STATE_READY)
 	{
-	HAL_I2C_Mem_Write(oled_i2c, (SSD1306_ADRESS<<1), 0x40, 1, Data, Size, SSD1306_TIMEOUT);
+		HAL_I2C_Mem_Write_DMA(oled_i2c, (SSD1306_ADRESS<<1), 0x40, 1, Data, Size);
 	}
 #else
-	HAL_I2C_Mem_Write_DMA(oled_i2c, (SSD1306_ADRESS<<1), 0x40, 1, Data, Size);
+	HAL_I2C_Mem_Write(oled_i2c, (SSD1306_ADRESS<<1), 0x40, 1, Data, Size, SSD1306_TIMEOUT);
 #endif
 }
 
@@ -72,7 +73,13 @@ void SSD1306_Display(void)
 	SSD1306_Command(0); // Column start address
 	SSD1306_Command(SSD1306_LCDWIDTH - 1); // Column end address
 
-	SSD1306_Data(buffer, SSD1306_BUFFER_SIZE);
+
+	for(uint16_t i = 0; i<SSD1306_BUFFER_SIZE; i++)
+	{
+		buffer_disp[i] = buffer[i];
+	}
+
+	SSD1306_Data(buffer_disp, SSD1306_BUFFER_SIZE);
 
 }
 

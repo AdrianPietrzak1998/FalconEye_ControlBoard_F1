@@ -1,6 +1,6 @@
-../Core/Src/ssd1306.c:16:13:SSD1306_Command	32	static
-../Core/Src/ssd1306.c:21:13:SSD1306_Data	32	static
-../Core/Src/ssd1306.c:33:6:SSD1306_DrawPixel	16	static
-../Core/Src/ssd1306.c:53:6:SSD1306_Clear	16	static
-../Core/Src/ssd1306.c:66:6:SSD1306_Display	8	static
-../Core/Src/ssd1306.c:79:6:SSD1306_Init	16	static
+../Core/Src/ssd1306.c:17:13:SSD1306_Command	32	static
+../Core/Src/ssd1306.c:22:13:SSD1306_Data	24	static
+../Core/Src/ssd1306.c:34:6:SSD1306_DrawPixel	16	static
+../Core/Src/ssd1306.c:54:6:SSD1306_Clear	16	static
+../Core/Src/ssd1306.c:67:6:SSD1306_Display	16	static
+../Core/Src/ssd1306.c:86:6:SSD1306_Init	16	static
