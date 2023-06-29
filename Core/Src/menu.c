@@ -26,6 +26,12 @@ uint8_t TempId;
 uint8_t ScrollEn;
 uint8_t ScrollFirst;
 
+
+static void StateIndicator(menu_t *menu, uint8_t pos);
+static uint8_t MenuGetIndex(menu_t *menu);
+static uint8_t MenuGetLevel(menu_t *menu);
+static void HeaderDraw(char *header);
+
 menu_t menu1 = { "ELEMENT 1", &menu2, &menu6, &sub_menu1_1, NULL, NULL, 0 };
 	menu_t sub_menu1_1 = { "ELEMENT 1_1", &sub_menu1_2, &sub_menu1_2, &sub_menu1_1_1, &menu1, NULL, 0 };
 		menu_t sub_menu1_1_1 = { BackStr, NULL, NULL, NULL, &sub_menu1_1, MenuBack };
@@ -46,7 +52,7 @@ menu_t menu5 = { "ELEMENT 5", &menu6, &menu4, NULL, NULL, NULL };
 menu_t menu6 = { "ELEMENT 6", NULL, &menu5, NULL, NULL, NULL };
 
 
-void HeaderDraw(char *header)
+static void HeaderDraw(char *header)
 
 {
 	  GFX_SetFont(font_8x5);
@@ -196,7 +202,7 @@ void MenuBack(void)
 	MenuRefresh();
 }
 
-uint8_t MenuGetIndex(menu_t *menu)
+static uint8_t MenuGetIndex(menu_t *menu)
 {
 	menu_t *temp;
 	uint8_t i = 0;
@@ -354,7 +360,7 @@ void ScrollString(void)
 
 }
 
-void StateIndicator(menu_t *menu, uint8_t pos)
+static void StateIndicator(menu_t *menu, uint8_t pos)
 {
 	if(menu == CurrentPointer)
 	{

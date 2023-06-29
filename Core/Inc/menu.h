@@ -53,13 +53,10 @@ extern menu_t menu6;
 
 
 
-void HeaderDraw(char *header);
 void MenuNext(void);
 void MenuPrev(void);
 void MenuEnter(void);
 void MenuBack(void);
-uint8_t MenuGetIndex(menu_t *menu);
-uint8_t MenuGetLevel(menu_t *menu);
 void MenuRefresh(void);
 void ScrollString(void);
 

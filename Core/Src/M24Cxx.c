@@ -20,39 +20,86 @@ void m24cxxInit(m24cxx_t *m24, I2C_HandleTypeDef *i2c, uint8_t addr, uint16_t me
 
 void m24cxxRead8Bit(m24cxx_t *m24, uint8_t DataAddr, uint8_t *Data)
 {
-
+	int32_t i = 0;
+	while((m24->i2c)->hdmarx->State != HAL_DMA_STATE_READY && i<=200000)
+	{
+		i++;
+	}
+	if((m24->i2c)->hdmarx->State == HAL_DMA_STATE_READY)
+	{
 	HAL_I2C_Mem_Read_DMA(m24 ->i2c, m24 -> addr, DataAddr, 1, Data, 1);
+	}
 }
 
 void m24cxxWrite8Bit(m24cxx_t *m24, uint8_t DataAddr, uint8_t *Data)
 {
 	HAL_GPIO_WritePin(m24->WcPort, m24->WcPin, RESET);
 	m24 -> WcIsZero = 1;
+	int32_t i = 0;
+	while((m24->i2c)->hdmatx->State != HAL_DMA_STATE_READY && i<=200000)
+	{
+		i++;
+	}
+	if((m24->i2c)->hdmatx->State == HAL_DMA_STATE_READY)
+	{
 	HAL_I2C_Mem_Write_DMA(m24 -> i2c, m24 -> addr, DataAddr, 1, Data, 1);
+	}
 }
 
 void m24cxxRead16Bit(m24cxx_t *m24, uint8_t DataAddr, uint16_t *Data)
 {
+	int32_t i = 0;
+	while((m24->i2c)->hdmarx->State != HAL_DMA_STATE_READY && i<=200000)
+	{
+		i++;
+	}
+	if((m24->i2c)->hdmarx->State == HAL_DMA_STATE_READY)
+	{
 	HAL_I2C_Mem_Read_DMA(m24 ->i2c, m24 -> addr, DataAddr, 1, Data, 2);
+	}
 }
 
 void m24cxxWrite16Bit(m24cxx_t *m24, uint8_t DataAddr, uint16_t *Data)
 {
 	HAL_GPIO_WritePin(m24->WcPort, m24->WcPin, RESET);
 	m24 -> WcIsZero = 1;
+	int32_t i = 0;
+	while((m24->i2c)->hdmatx->State != HAL_DMA_STATE_READY && i<=200000)
+	{
+		i++;
+	}
+	if((m24->i2c)->hdmatx->State == HAL_DMA_STATE_READY)
+	{
 	HAL_I2C_Mem_Write_DMA(m24 -> i2c, m24 -> addr, DataAddr, 1, Data, 2);
+	}
 }
 
 void m24cxxRead32Bit(m24cxx_t *m24, uint8_t DataAddr, uint32_t *Data)
 {
+	int32_t i = 0;
+	while((m24->i2c)->hdmarx->State != HAL_DMA_STATE_READY && i<=200000)
+	{
+		i++;
+	}
+	if((m24->i2c)->hdmarx->State == HAL_DMA_STATE_READY)
+	{
 	HAL_I2C_Mem_Read_DMA(m24 ->i2c, m24 -> addr, DataAddr, 1, Data, 4);
+	}
 }
 
 void m24cxxWrite32Bit(m24cxx_t *m24, uint8_t DataAddr, uint32_t *Data)
 {
 	HAL_GPIO_WritePin(m24->WcPort, m24->WcPin, RESET);
 	m24 -> WcIsZero = 1;
+	int32_t i = 0;
+	while((m24->i2c)->hdmatx->State != HAL_DMA_STATE_READY && i<=200000)
+	{
+		i++;
+	}
+	if((m24->i2c)->hdmatx->State == HAL_DMA_STATE_READY)
+	{
 	HAL_I2C_Mem_Write_DMA(m24 -> i2c, m24 -> addr, DataAddr, 1, Data, 4);
+	}
 }
 
 void m24cxxFullRead(m24cxx_t *m24, uint8_t *Data)

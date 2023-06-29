@@ -22,6 +22,7 @@ static void SSD1306_Command(uint8_t Command)
 static void SSD1306_Data(uint8_t *Data, uint16_t Size)
 {
 #ifdef SSD1306_USE_DMA
+
 	if(oled_i2c -> hdmatx -> State == HAL_DMA_STATE_READY)
 	{
 		HAL_I2C_Mem_Write_DMA(oled_i2c, (SSD1306_ADRESS<<1), 0x40, 1, Data, Size);

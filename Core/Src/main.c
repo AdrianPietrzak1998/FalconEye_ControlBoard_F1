@@ -84,6 +84,8 @@ uint8_t EpromBufer[256];
 
 uint8_t buff[256];
 
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -156,6 +158,8 @@ int main(void)
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
+  SSD1306_Init(&hi2c1);
+
   OldTick500ms = HAL_GetTick();
   OldTick100ms = HAL_GetTick();
   OldTick50ms = HAL_GetTick();
@@ -172,7 +176,6 @@ int main(void)
   ButtonRegisterRepeatCallback(&KeyDown, MenuPrev);
   ButtonRegisterPressCallback(&KeyUp, MenuEnter);
 
-  SSD1306_Init(&hi2c1);
 
   MenuRefresh();
 
@@ -194,6 +197,8 @@ int main(void)
 
   while (1)
   {
+//	  m24cxxWrite16Bit(&M24C02, 0x10, &Data);
+
 	  if(LineCounter)
 	  {
 		  Parser_TakeLine(&ReceiveBuffer, ReceivedData);
@@ -221,6 +226,7 @@ int main(void)
 
 	  ButtonTask(&KeyDown);
 	  ButtonTask(&KeyUp);
+
 
 
 
