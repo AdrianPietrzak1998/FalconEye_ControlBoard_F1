@@ -51,6 +51,8 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define EEPROM_ADDRES 0x50
+#define V25 1.43F
+#define AVG_SLOPE 4.3F
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -62,6 +64,7 @@
 
 /* USER CODE BEGIN PV */
 button_t KeyUp, KeyDown;
+
 RingBuffer_t ReceiveBuffer;
 RingBuffer_t TransmitBuffer;
 
@@ -80,9 +83,39 @@ float Temperature;
 uint8_t ds1[DS18B20_ROM_CODE_SIZE];
 
 m24cxx_t M24C02;
-uint8_t EpromBufer[256];
+uint8_t EpromBufer[255];
 
-uint8_t buff[256];
+
+volatile uint32_t ITCount;
+
+volatile struct Measurements{
+
+	union{
+		uint16_t Adc1Value[4];
+		struct
+		{
+			uint16_t Voltage12Raw;
+			uint16_t Voltage5Raw;
+			uint16_t CurrentRaw;
+			uint16_t InternalTemperatureRaw;
+		};
+	};
+	float Voltage12;
+	float Voltage5;
+	float Current;
+	float InternalTemperature;
+}Measurements;
+
+
+	void (*ActualVisibleFunc)(void);
+
+
+
+
+
+
+
+
 
 
 
@@ -95,15 +128,21 @@ static void MX_NVIC_Init(void);
 void UsbBuffWrite(char * Message);
 void UsbTransmitTask(void);
 
-void GpioELedToggle(void);
-void GpioFLedToggle(void);
 
 void IntervalFunc500ms(void);
 void IntervalFunc100ms(void);
 void IntervalFunc50ms(void);
 
+void MeasurementConversion(void);
+
+void ShowMenu(void);
+void HideMenu(void);
+void ShowMeasurements(void);
+void ShowTemperature(void);
+
 
 void all(uint8_t x);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -118,12 +157,6 @@ void all(uint8_t x);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	for(uint8_t i = 0; i<255; i++)
-	{
-		buff[i] = 'a';
-	}
-	buff[254] = 0;
-
 
   /* USER CODE END 1 */
 
@@ -158,7 +191,7 @@ int main(void)
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
-  SSD1306_Init(&hi2c1);
+  SSD1306_Init(&hi2c1, &hdma_memtomem_dma2_channel1);
 
   OldTick500ms = HAL_GetTick();
   OldTick100ms = HAL_GetTick();
@@ -172,12 +205,8 @@ int main(void)
   ButtonInitKey(&KeyUp, BUTTON_UP_GPIO_Port, BUTTON_UP_Pin, 20, 1000, 500);
   ButtonInitKey(&KeyDown, BUTTON_DOWN_GPIO_Port, BUTTON_DOWN_Pin, 20, 1000, 500);
 
-  ButtonRegisterPressCallback(&KeyDown, MenuNext);
-  ButtonRegisterRepeatCallback(&KeyDown, MenuPrev);
-  ButtonRegisterPressCallback(&KeyUp, MenuEnter);
+  ShowMenu();
 
-
-  MenuRefresh();
 
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
@@ -191,13 +220,14 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  GPIOF->ODR = 0x400;
 
   m24cxxInit(&M24C02, &hi2c1, EEPROM_ADDRES, M24C02_MEM_SIZE, WC_EEPROM_GPIO_Port, WC_EEPROM_Pin);
 
+  HAL_ADC_Start_DMA(&hadc1,(uint32_t*)Measurements.Adc1Value, 4);
+
   while (1)
   {
-//	  m24cxxWrite16Bit(&M24C02, 0x10, &Data);
+
 
 	  if(LineCounter)
 	  {
@@ -226,6 +256,8 @@ int main(void)
 
 	  ButtonTask(&KeyDown);
 	  ButtonTask(&KeyUp);
+
+	  MeasurementConversion();
 
 
 
@@ -276,7 +308,7 @@ void SystemClock_Config(void)
     Error_Handler();
   }
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC|RCC_PERIPHCLK_USB;
-  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV6;
+  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV8;
   PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL_DIV1_5;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
@@ -302,9 +334,23 @@ static void MX_NVIC_Init(void)
   /* USB_LP_CAN1_RX0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(USB_LP_CAN1_RX0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
+  /* ADC1_2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(ADC1_2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(ADC1_2_IRQn);
+  /* DMA2_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Channel1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Channel1_IRQn);
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+	if(hadc ->Instance == ADC1)
+	{
+		HAL_ADC_Start_DMA(&hadc1, (uint32_t*)Measurements.Adc1Value, 4);
+		ITCount++;
+	}
+}
 
 void all(uint8_t x)
 {
@@ -313,14 +359,60 @@ void all(uint8_t x)
 
 
 
-void GpioFLedToggle()
+void ShowMenu(void)
 {
-	GPIOF->ODR = GPIOF->ODR << 1;
-	if(!(GPIOF->ODR <= 0x8000 && GPIOF->ODR >= 0x200))
-	{
-		GPIOF->ODR = 0x200;
-	}
+	ButtonRegisterPressCallback(&KeyDown, MenuNext);
+	ButtonRegisterRepeatCallback(&KeyDown, MenuPrev);
+	ButtonRegisterPressCallback(&KeyUp, MenuEnter);
+	ActualVisibleFunc = ScrollString;
+	MenuRefresh();
 }
+
+void HideMenu(void)
+{
+	ButtonRegisterPressCallback(&KeyDown, NULL);
+	ButtonRegisterRepeatCallback(&KeyDown, NULL);
+	ButtonRegisterPressCallback(&KeyUp, NULL);
+	ActualVisibleFunc = NULL;
+}
+
+void ShowMeasurements(void)
+{
+	HideMenu();
+	ActualVisibleFunc = ShowMeasurements;
+	ButtonRegisterPressCallback(&KeyDown, ShowMenu);
+	SSD1306_Clear(BLACK);
+	char buff[16];
+	sprintf(buff, "5V:   %.2fV", Measurements.Voltage5);
+	GFX_DrawString(0, 0, buff, WHITE, 1);
+	sprintf(buff, "12V:  %.2fV", Measurements.Voltage12);
+	GFX_DrawString(0, 16, buff, WHITE, 1);
+	sprintf(buff, "Curr: %.2fA", Measurements.Current);
+	GFX_DrawString(0, 32, buff, WHITE, 1);
+}
+
+void ShowTemperature(void)
+{
+	HideMenu();
+	ActualVisibleFunc = ShowTemperature;
+	ButtonRegisterPressCallback(&KeyDown, ShowMenu);
+	SSD1306_Clear(BLACK);
+	char buff[16];
+	sprintf(buff, "MCU: %.2fC", Measurements.InternalTemperature);
+	GFX_DrawString(0, 0, buff, WHITE, 1);
+	sprintf(buff, "Amb: %.2fC", Temperature);
+	GFX_DrawString(0, 16, buff, WHITE, 1);
+}
+
+
+
+void MeasurementConversion(void)
+{
+	Measurements.Voltage5 = Measurements.Voltage5Raw /1241.0F*2;
+	Measurements.InternalTemperature = ((Measurements.InternalTemperatureRaw /1241.0F) - V25) / AVG_SLOPE + 25;
+}
+
+
 
 void IntervalFunc500ms(void)
 {
@@ -328,13 +420,12 @@ void IntervalFunc500ms(void)
 	  {
 		  OldTick500ms = HAL_GetTick();
 
-		  if(M24C02.i2c -> State == HAL_I2C_STATE_READY)
-		  {
-			  m24cxxFullRead(&M24C02, EpromBufer);
-		  }
+//		  if(M24C02.i2c -> State == HAL_I2C_STATE_READY)
+//		  {
+//			  m24cxxFullRead(&M24C02, EpromBufer);
+//		  }
 
-//		  GpioELedToggle();
-		  GpioFLedToggle();
+
 		  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
 
 		  static uint8_t TempMeasureFlag = 0;
@@ -357,7 +448,19 @@ void IntervalFunc100ms(void)
 {
 	if(HAL_GetTick() - OldTick100ms >100)
 	{
-		UsbBuffWrite((char*)buff);
+		char MsgToSend[255];
+		/*
+		 * Message to send id. 0.
+		 * 0/Input 16bit/Output 16bit/PWM1/PWM2/PWM3/PWM4/Temperature/12V/5V/Current
+		 */
+		sprintf(MsgToSend, "0/%u/%u/%u/%u/%u/%u/%.2f",   (uint16_t*)GPIOG->IDR,
+									(uint16_t*)GPIOE->ODR,
+									(uint16_t*)__HAL_TIM_GetCompare(&htim4, TIM_CHANNEL_1),
+									(uint16_t*)__HAL_TIM_GetCompare(&htim4, TIM_CHANNEL_2),
+									(uint16_t*)__HAL_TIM_GetCompare(&htim4, TIM_CHANNEL_3),
+									(uint16_t*)__HAL_TIM_GetCompare(&htim4, TIM_CHANNEL_4),
+									Temperature);
+		UsbBuffWrite(MsgToSend);
 		OldTick100ms = HAL_GetTick();
 	}
 
@@ -367,7 +470,11 @@ void IntervalFunc50ms(void)
 {
 	if(HAL_GetTick() - OldTick50ms >50)
 	{
-		ScrollString();
+		if(ActualVisibleFunc != NULL)
+		{
+			ActualVisibleFunc();
+		}
+
 		SSD1306_Display();
 
 		OldTick50ms = HAL_GetTick();

@@ -65,7 +65,7 @@ main-build: FalconEye\ ControlBoard.elf secondary-outputs
 
 # Tool invocations
 FalconEye\ ControlBoard.elf FalconEye\ ControlBoard.map: $(OBJS) $(USER_OBJS) C:\Users\Adrian\STM32CubeIDE\kurs\FalconEye\ ControlBoard\STM32F103ZETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "FalconEye ControlBoard.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\Adrian\STM32CubeIDE\kurs\FalconEye ControlBoard\STM32F103ZETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="FalconEye ControlBoard.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "FalconEye ControlBoard.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\Adrian\STM32CubeIDE\kurs\FalconEye ControlBoard\STM32F103ZETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="FalconEye ControlBoard.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

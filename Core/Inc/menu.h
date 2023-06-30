@@ -13,6 +13,7 @@
 
 #define OLED_ROWS 3
 #define OLED_MENU_Y_OFFSET 9
+#define OLED_MENU_Y_SPACE 18
 #define SCROLL_FREEZE 1000
 
 extern const uint8_t font_8x5[];
@@ -50,8 +51,12 @@ extern menu_t menu3;
 extern menu_t menu4;
 extern menu_t menu5;
 extern menu_t menu6;
+extern 		menu_t sub_menu6_1;
+extern 		menu_t sub_menu6_2;
+extern 		menu_t sub_menu6_3;
 
-
+extern void ShowMeasurements(void);
+extern void ShowTemperature(void);
 
 void MenuNext(void);
 void MenuPrev(void);

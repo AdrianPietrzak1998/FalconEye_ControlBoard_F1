@@ -49,7 +49,10 @@ menu_t menu2 = { "ELEMENT 2", &menu3, &menu1, &sub_menu2_1, NULL, NULL, 0 };
 menu_t menu3 = { "ELEMENT 3", &menu4, &menu2, NULL, NULL, NULL };
 menu_t menu4 = { "ELEMENT 4", &menu5, &menu3, NULL, NULL, NULL };
 menu_t menu5 = { "ELEMENT 5", &menu6, &menu4, NULL, NULL, NULL };
-menu_t menu6 = { "ELEMENT 6", NULL, &menu5, NULL, NULL, NULL };
+menu_t menu6 = { "Monitor", NULL, &menu5, &sub_menu6_1, NULL, NULL };
+	menu_t sub_menu6_1 = { "Measurements", &sub_menu6_2, &sub_menu6_3, NULL, &menu6, ShowMeasurements };
+	menu_t sub_menu6_2 = { "Temperature", &sub_menu6_3, &sub_menu6_1, NULL, &menu6, ShowTemperature };
+	menu_t sub_menu6_3 = { BackStr, NULL, &sub_menu6_2, NULL, &menu6, MenuBack };
 
 
 static void HeaderDraw(char *header)
@@ -292,11 +295,11 @@ void MenuRefresh(void)
 			else
 			{
 				ScrollEn = 0;
-				GFX_DrawFillRectangle(5, (i*20) + OLED_MENU_Y_OFFSET, 123, 16, WHITE);
+				GFX_DrawRectangle(17, ((i*OLED_MENU_Y_SPACE)-1) + OLED_MENU_Y_OFFSET, 111, 18, WHITE);
 //				GFX_DrawFillCircle(10, (i*20) + OLED_MENU_Y_OFFSET + 8, 4, BLACK);
 //				GFX_DrawChar(5, (i*20) + OLED_MENU_Y_OFFSET + 1, '>', BLACK, 1);
 				StateIndicator(temp, i);
-				GFX_DrawString(20, (i*20) + OLED_MENU_Y_OFFSET + 1, temp->name, BLACK, 1);
+				GFX_DrawString(20, (i*OLED_MENU_Y_SPACE) + OLED_MENU_Y_OFFSET + 1, temp->name, WHITE, 1);
 			}
 
 		}
@@ -304,7 +307,7 @@ void MenuRefresh(void)
 		{
 //			GFX_DrawChar(5, (i*20) + OLED_MENU_Y_OFFSET + 1, '>', WHITE, 0);
 			StateIndicator(temp, i);
-			GFX_DrawString(20, (i*20) + OLED_MENU_Y_OFFSET, temp->name, WHITE, 0);
+			GFX_DrawString(20, (i*OLED_MENU_Y_SPACE) + OLED_MENU_Y_OFFSET, temp->name, WHITE, 0);
 		}
 
 		temp = temp -> next;
@@ -332,22 +335,23 @@ void ScrollString(void)
 
 	  int16_t var = TempStrLengthVar;
 
-		GFX_DrawFillRectangle(5, (TempId*20) + OLED_MENU_Y_OFFSET, 123, 16, WHITE);
+	  	GFX_DrawFillRectangle(0, ((TempId*OLED_MENU_Y_SPACE)-1) + OLED_MENU_Y_OFFSET, 128, 18, BLACK);
 		if(ScrollVar>var-75)
 		{
-		GFX_DrawString(ScrollVar, (TempId*20) + OLED_MENU_Y_OFFSET + 1, TempStr, BLACK, 1);
+		GFX_DrawString(ScrollVar, (TempId*OLED_MENU_Y_SPACE) + OLED_MENU_Y_OFFSET + 1, TempStr, WHITE, 1);
 		}
 
-		GFX_DrawFillRectangle(5, (TempId*20) + OLED_MENU_Y_OFFSET, 15, 16, WHITE);
+		GFX_DrawFillRectangle(0, ((TempId*OLED_MENU_Y_SPACE)-1) + OLED_MENU_Y_OFFSET, 17, 18, BLACK);
 //		GFX_DrawFillCircle(10, (TempId*20) + OLED_MENU_Y_OFFSET + 8, 4, BLACK);
 //		GFX_DrawChar(5, (TempId*20) + OLED_MENU_Y_OFFSET + 1, '>', BLACK, 1);
 		StateIndicator(CurrentPointer, TempId);
+		GFX_DrawRectangle(17, ((TempId*OLED_MENU_Y_SPACE)-1) + OLED_MENU_Y_OFFSET, 111, 18, WHITE);
 
 		if(HAL_GetTick() - OldTick >= SCROLL_FREEZE) ScrollVar--;
 
 		  if(ScrollVar < var)
 		  {
-			  GFX_DrawString(ScrollVar2, (TempId*20) + OLED_MENU_Y_OFFSET + 1, TempStr, BLACK, 1);
+			  GFX_DrawString(ScrollVar2, (TempId*OLED_MENU_Y_SPACE) + OLED_MENU_Y_OFFSET + 1, TempStr, WHITE, 1);
 			  ScrollVar2--;
 			  if(ScrollVar2 == 20)
 			  {
@@ -366,38 +370,38 @@ static void StateIndicator(menu_t *menu, uint8_t pos)
 	{
 		if(menu->menu_state == 0 && menu->name != BackStr)
 		{
-			GFX_DrawChar(5, (pos*20) + OLED_MENU_Y_OFFSET + 1, '>', BLACK, 1);
+			GFX_DrawChar(5, (pos*OLED_MENU_Y_SPACE) + OLED_MENU_Y_OFFSET + 1, '>', WHITE, 0);
 		}
 		else if(menu->menu_state == 0 && menu->name == BackStr)
 		{
-			GFX_DrawChar(5, (pos*20) + OLED_MENU_Y_OFFSET + 1, '<', BLACK, 1);
+			GFX_DrawChar(5, (pos*OLED_MENU_Y_SPACE) + OLED_MENU_Y_OFFSET + 1, '<', WHITE, 0);
 		}
 		else if(menu->menu_state == 1)
 		{
-			GFX_DrawFillCircle(10, (pos*20) + OLED_MENU_Y_OFFSET + 8, 4, BLACK);
+			GFX_DrawFillCircle(10, (pos*OLED_MENU_Y_SPACE) + OLED_MENU_Y_OFFSET + 8, 4, WHITE);
 		}
 		else if(menu->menu_state == -1)
 		{
-			GFX_DrawCircle(10, (pos*20) + OLED_MENU_Y_OFFSET + 8, 4, BLACK);
+			GFX_DrawCircle(10, (pos*OLED_MENU_Y_SPACE) + OLED_MENU_Y_OFFSET + 8, 4, WHITE);
 		}
 	}
 	else
 	{
 		if(menu->menu_state == 0 && menu->name != BackStr)
 		{
-			GFX_DrawChar(5, (pos*20) + OLED_MENU_Y_OFFSET + 1, '>', WHITE, 0);
+			GFX_DrawChar(5, (pos*OLED_MENU_Y_SPACE) + OLED_MENU_Y_OFFSET + 1, '>', WHITE, 0);
 		}
 		else if(menu->menu_state == 0 && menu->name == BackStr)
 		{
-			GFX_DrawChar(5, (pos*20) + OLED_MENU_Y_OFFSET + 1, '<', WHITE, 0);
+			GFX_DrawChar(5, (pos*OLED_MENU_Y_SPACE) + OLED_MENU_Y_OFFSET + 1, '<', WHITE, 0);
 		}
 		else if(menu->menu_state == 1)
 		{
-			GFX_DrawFillCircle(10, (pos*20) + OLED_MENU_Y_OFFSET + 8, 4, WHITE);
+			GFX_DrawFillCircle(10, (pos*OLED_MENU_Y_SPACE) + OLED_MENU_Y_OFFSET + 8, 4, WHITE);
 		}
 		else if(menu->menu_state == -1)
 		{
-			GFX_DrawCircle(10, (pos*20) + OLED_MENU_Y_OFFSET + 8, 4, WHITE);
+			GFX_DrawCircle(10, (pos*OLED_MENU_Y_SPACE) + OLED_MENU_Y_OFFSET + 8, 4, WHITE);
 		}
 	}
 }

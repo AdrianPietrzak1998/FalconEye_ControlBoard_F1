@@ -10,8 +10,10 @@
 
 #define SSD1306_ADRESS 0x3c
 #define SSD1306_TIMEOUT 1000
+#define OLED_TRIALS 1000
 
 #define SSD1306_USE_DMA
+#define SSD1306_USE_DMA_DOUBLE_BUFFERING //Config DMA MemToMem. Data size: Byte
 
 
 #define BLACK SSD1306_BLACK     ///< Draw 'off' pixels
@@ -64,7 +66,11 @@
 
 #define SSD1306_BUFFER_SIZE (SSD1306_LCDHEIGHT * SSD1306_LCDWIDTH / 8)
 
-void SSD1306_Init(I2C_HandleTypeDef *i2c);
+#ifdef SSD1306_USE_DMA_DOUBLE_BUFFERING
+HAL_StatusTypeDef SSD1306_Init(I2C_HandleTypeDef *i2c, DMA_HandleTypeDef *dma);
+#else
+HAL_StatusTypeDef SSD1306_Init(I2C_HandleTypeDef *i2c);
+#endif
 void SSD1306_Display(void);
 void SSD1306_Clear(uint8_t Color);
 void SSD1306_DrawPixel(int16_t x, int16_t y, uint8_t Color);
