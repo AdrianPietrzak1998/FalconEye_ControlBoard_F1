@@ -15,15 +15,16 @@
 
 
 
+
 int32_t ReceivedCommandArgument[16];
 
 struct Command CommandMapper[] = {
-		{ALL, all, 5},
-		{OUT, all, 1},
-		{PWM1, all, 1},
-		{PWM2, all, 1},
-		{PWM3, all, 1},
-		{PWM4, all, 1},
+		{OUT_REG, OutputSet, 1},
+		{OUT_PIN_SET, OutputPinStateSet, 2},
+		{OUT_PIN_TOGGLE, OutputPinToggle, 1},
+		{PWM_ALL, PwmSet, 4},
+		{PWM_CHANNEL_SET, PwmChannelSet, 2},
+		{DISPLAY_CONTRAST, DisplayContrast, 1},
 };
 
 void Parser_TakeLine(RingBuffer_t *Buff, uint8_t *Destination)
@@ -63,6 +64,7 @@ void Parser_parse(uint8_t * DataToParse)
 			ReceivedCommandArgument[i] = atoi(ParsePointer);
 		}
 
-		CommandMapper[CommandID].Action(ReceivedCommandArgument[0], ReceivedCommandArgument[1], ReceivedCommandArgument[2]);
+ 		CommandMapper[CommandID].Action(ReceivedCommandArgument[0], ReceivedCommandArgument[1], ReceivedCommandArgument[2], ReceivedCommandArgument[3]);
+ 		UsbBuffWrite("OK");
 	}
 }

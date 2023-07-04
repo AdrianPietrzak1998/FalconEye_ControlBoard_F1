@@ -12,6 +12,7 @@
 #include "ssd1306.h"
 #include "GFX_BW.h"
 #include "string.h"
+#include "menu_out_set.h"
 
 menu_t *CurrentPointer = &menu1; //Actual menu level
 uint8_t MenuIndex; //Actual menu index on screen
@@ -32,10 +33,31 @@ static uint8_t MenuGetIndex(menu_t *menu);
 static uint8_t MenuGetLevel(menu_t *menu);
 static void HeaderDraw(char *header);
 
-menu_t menu1 = { "ELEMENT 1", &menu2, &menu6, &sub_menu1_1, NULL, NULL, 0 };
-	menu_t sub_menu1_1 = { "ELEMENT 1_1", &sub_menu1_2, &sub_menu1_2, &sub_menu1_1_1, &menu1, NULL, 0 };
-		menu_t sub_menu1_1_1 = { BackStr, NULL, NULL, NULL, &sub_menu1_1, MenuBack };
-	menu_t sub_menu1_2 = { BackStr, NULL, &sub_menu1_1, NULL, &menu1, MenuBack };
+menu_t menu1 = { "I/O", &menu2, &menu6, &sub_menu1_1, NULL, NULL, 0 };
+	menu_t sub_menu1_1 = { "OUT 0-7", &sub_menu1_2, &sub_menu1_7, NULL, &menu1, ShowOut0to7 };
+	menu_t sub_menu1_2 = { "OUT 8-15", &sub_menu1_3, &sub_menu1_1, NULL, &menu1, ShowOut8to15 };
+	menu_t sub_menu1_3 = { "PWM", &sub_menu1_4, &sub_menu1_2, NULL, &menu1, ShowPWMsetMenu };
+	menu_t sub_menu1_4 = { "IN 0-7", &sub_menu1_5, &sub_menu1_3, NULL, &menu1, ShowIn0to7 };
+	menu_t sub_menu1_5 = { "IN 8-15", &sub_menu1_6, &sub_menu1_4, NULL, &menu1, ShowIn8to15 };
+	menu_t sub_menu1_6 = { "OUT settings", &sub_menu1_7, &sub_menu1_5, &sub_menu1_6_1, &menu1, NULL };
+		menu_t sub_menu1_6_1  = { "OUT 0",  &sub_menu1_6_2,  &sub_menu1_6_17, NULL, &sub_menu1_6, SetOut0 };
+		menu_t sub_menu1_6_2  = { "OUT 1",  &sub_menu1_6_3,  &sub_menu1_6_1,  NULL, &sub_menu1_6, SetOut1 };
+		menu_t sub_menu1_6_3  = { "OUT 2",  &sub_menu1_6_4,  &sub_menu1_6_2,  NULL, &sub_menu1_6, SetOut2 };
+		menu_t sub_menu1_6_4  = { "OUT 3",  &sub_menu1_6_5,  &sub_menu1_6_3,  NULL, &sub_menu1_6, SetOut3 };
+		menu_t sub_menu1_6_5  = { "OUT 4",  &sub_menu1_6_6,  &sub_menu1_6_4,  NULL, &sub_menu1_6, SetOut4 };
+		menu_t sub_menu1_6_6  = { "OUT 5",  &sub_menu1_6_7,  &sub_menu1_6_5,  NULL, &sub_menu1_6, SetOut5 };
+		menu_t sub_menu1_6_7  = { "OUT 6",  &sub_menu1_6_8,  &sub_menu1_6_6,  NULL, &sub_menu1_6, SetOut6 };
+		menu_t sub_menu1_6_8  = { "OUT 7",  &sub_menu1_6_9,  &sub_menu1_6_7,  NULL, &sub_menu1_6, SetOut7 };
+		menu_t sub_menu1_6_9  = { "OUT 8",  &sub_menu1_6_10, &sub_menu1_6_8,  NULL, &sub_menu1_6, SetOut8 };
+		menu_t sub_menu1_6_10 = { "OUT 9",  &sub_menu1_6_11, &sub_menu1_6_9,  NULL, &sub_menu1_6, SetOut9 };
+		menu_t sub_menu1_6_11 = { "OUT 10", &sub_menu1_6_12, &sub_menu1_6_10, NULL, &sub_menu1_6, SetOut10 };
+		menu_t sub_menu1_6_12 = { "OUT 11", &sub_menu1_6_13, &sub_menu1_6_11, NULL, &sub_menu1_6, SetOut11 };
+		menu_t sub_menu1_6_13 = { "OUT 12", &sub_menu1_6_14, &sub_menu1_6_12, NULL, &sub_menu1_6, SetOut12 };
+		menu_t sub_menu1_6_14 = { "OUT 13", &sub_menu1_6_15, &sub_menu1_6_13, NULL, &sub_menu1_6, SetOut13 };
+		menu_t sub_menu1_6_15 = { "OUT 14", &sub_menu1_6_16, &sub_menu1_6_14, NULL, &sub_menu1_6, SetOut14 };
+		menu_t sub_menu1_6_16 = { "OUT 15", &sub_menu1_6_17, &sub_menu1_6_15, NULL, &sub_menu1_6, SetOut15 };
+		menu_t sub_menu1_6_17 = { BackStr, NULL, &sub_menu1_6_16, NULL, &sub_menu1_6, MenuBack };
+	menu_t sub_menu1_7 = { BackStr, NULL, &sub_menu1_6, NULL, &menu1, MenuBack };
 menu_t menu2 = { "ELEMENT 2", &menu3, &menu1, &sub_menu2_1, NULL, NULL, 0 };
 	menu_t sub_menu2_1 = { "ELEMENT 2_1", &sub_menu2_2, &sub_menu2_4, NULL, &menu2, NULL, 0 };
 	menu_t sub_menu2_2 = { "ELEMENT 2_2", &sub_menu2_3, &sub_menu2_1, &sub_menu2_2_1, &menu2, NULL, 0 };
@@ -250,6 +272,11 @@ void MenuRefresh(void)
 {
 	menu_t *temp;
 	uint8_t i;
+
+	if(CurrentPointer->parent == &sub_menu1_6)
+	{
+		MenuIndicatorRefresh();
+	}
 
 	SSD1306_Clear(BLACK);
 

@@ -12,13 +12,22 @@
 
 extern uint8_t FanSpeed;
 
+/*
+ * OUT_REG (ODR_VALUE)
+ * OTU_PIN_SET (PIN 0 - 15, STATE 0|1)
+ * OUT_PIN_TOGGLE (PIN 0 - 15)
+ * PWM_ALL (PWM1, PWM2 0 - 1000, ...)
+ * PWM_CHANNEL_SET (PWM_CHANNEL 1 - 4, PWM 0 - 1000)
+ * DISPLAY_CONTRAST (CONTRAST 0 - 255)
+ */
+
 typedef enum{
-	ALL = 0,
-	OUT,
-	PWM1,
-	PWM2,
-	PWM3,
-	PWM4
+	OUT_REG = 0,
+	OUT_PIN_SET,
+	OUT_PIN_TOGGLE,
+	PWM_ALL,
+	PWM_CHANNEL_SET,
+	DISPLAY_CONTRAST
 
 }ReceivedCommand_t;
 
@@ -32,12 +41,12 @@ const struct Command{
 //
 // extern declaration received function
 //
-extern void all(uint8_t x);
-extern void out(void);
-extern void pwm1(void);
-extern void pwm2(void);
-extern void pwm3(void);
-extern void pwm4(void);
+extern void OutputSet(uint16_t ODRvalue);
+extern void OutputPinStateSet(uint8_t Pin, uint8_t State);
+extern void OutputPinToggle(uint8_t Pin);
+extern void PwmSet(uint16_t Pwm1, uint16_t Pwm2, uint16_t Pwm3, uint16_t Pwm4);
+extern void PwmChannelSet(uint8_t Channel, uint16_t Value);
+extern void DisplayContrast(uint8_t Contrast);
 //
 //
 //

@@ -41,6 +41,7 @@
 #include "fonts/fonts.h"
 #include "button.h"
 #include "menu.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -107,16 +108,6 @@ volatile struct Measurements{
 }Measurements;
 
 
-	void (*ActualVisibleFunc)(void);
-
-
-
-
-
-
-
-
-
 
 
 /* USER CODE END PV */
@@ -135,13 +126,28 @@ void IntervalFunc50ms(void);
 
 void MeasurementConversion(void);
 
+void OutputSet(uint16_t ODRvalue);
+void OutputPinStateSet(uint8_t Pin, uint8_t State);
+void OutputPinToggle(uint8_t Pin);
+void PwmSet(uint16_t Pwm1, uint16_t Pwm2, uint16_t Pwm3, uint16_t Pwm4);
+void PwmChannelSet(uint8_t Channel, uint16_t Value);
+void DisplayContrast(uint8_t Contrast);
+
 void ShowMenu(void);
 void HideMenu(void);
 void ShowMeasurements(void);
 void ShowTemperature(void);
+void Show8bitIndicators(uint8_t Data, uint8_t NameNumberStart);
+void ShowOut0to7(void);
+void ShowOut8to15(void);
+void ShowIn0to7(void);
+void ShowIn8to15(void);
+void ShowPWMsetMenu(void);
 
 
 void all(uint8_t x);
+
+void (*ActualVisibleFunc)(void);
 
 /* USER CODE END PFP */
 
@@ -216,6 +222,7 @@ int main(void)
   __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 100);
 
 
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -224,6 +231,8 @@ int main(void)
   m24cxxInit(&M24C02, &hi2c1, EEPROM_ADDRES, M24C02_MEM_SIZE, WC_EEPROM_GPIO_Port, WC_EEPROM_Pin);
 
   HAL_ADC_Start_DMA(&hadc1,(uint32_t*)Measurements.Adc1Value, 4);
+
+
 
   while (1)
   {
@@ -343,18 +352,56 @@ static void MX_NVIC_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
-{
-	if(hadc ->Instance == ADC1)
-	{
-		HAL_ADC_Start_DMA(&hadc1, (uint32_t*)Measurements.Adc1Value, 4);
-		ITCount++;
-	}
-}
 
 void all(uint8_t x)
 {
 	HAL_Delay(x);
+}
+
+void OutputSet(uint16_t ODRvalue)
+{
+	GPIOE -> ODR = ODRvalue;
+}
+
+void OutputPinStateSet(uint8_t Pin, uint8_t State)
+{
+	if(State == 1)
+	{
+		GPIOE -> ODR |= (1 << Pin);
+	}
+	else if (State == 0)
+	{
+		GPIOE -> ODR &= ~(1 << Pin);
+	}
+}
+
+void OutputPinToggle(uint8_t Pin)
+{
+	GPIOE -> ODR ^= (1 << Pin);
+}
+
+void PwmSet(uint16_t Pwm1, uint16_t Pwm2, uint16_t Pwm3, uint16_t Pwm4)
+{
+	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, Pwm1);
+	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, Pwm2);
+	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, Pwm3);
+	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, Pwm4);
+}
+
+void PwmChannelSet(uint8_t Channel, uint16_t Value)
+{
+	Channel = Channel - 1;
+
+//	uint8_t ChannelMapper[] = {TIM_CHANNEL_1, TIM_CHANNEL_2, TIM_CHANNEL_3, TIM_CHANNEL_4};
+//	__HAL_TIM_SET_COMPARE(&htim4, ChannelMapper[Channel], Value);
+
+	__HAL_TIM_SET_COMPARE(&htim4, Channel*4, Value);
+}
+
+void DisplayContrast(uint8_t Contrast)
+{
+	SSD1306_Command(SSD1306_SETCONTRAST);
+	SSD1306_Command(Contrast);
 }
 
 
@@ -404,7 +451,90 @@ void ShowTemperature(void)
 	GFX_DrawString(0, 16, buff, WHITE, 1);
 }
 
+void Show8bitIndicators(uint8_t Data, uint8_t NameNumberStart)
+{
+	ButtonRegisterPressCallback(&KeyDown, ShowMenu);
+	SSD1306_Clear(BLACK);
 
+	char buff[4];
+	GFX_SetFont(font_8x5);
+	GFX_SetFontSize(1);
+	for(uint8_t i=0; i<=7; i++)
+	{
+		sprintf(buff, "%u.", NameNumberStart + i);
+		uint8_t y = 20;
+		uint8_t y_name = 0;
+		if(i>3)
+		{
+			y = 43;
+			y_name = 57;
+		}
+		GFX_DrawString(15 + (30 * ((i<4)?i:i-4)), y_name, buff, WHITE, 1);
+		if((Data>>i)&1)
+		{
+			GFX_DrawFillCircle(20 + (30 * ((i<4)?i:i-4)), y, 10, WHITE);
+		}
+		else
+		{
+			GFX_DrawCircle(20 + (30 * ((i<4)?i:i-4)), y, 10, WHITE);
+		}
+
+
+	}
+}
+
+void ShowOut0to7(void)
+{
+	HideMenu();
+	ActualVisibleFunc = ShowOut0to7;
+	Show8bitIndicators(GPIOE -> ODR, 0);
+}
+
+void ShowOut8to15(void)
+{
+	HideMenu();
+	ActualVisibleFunc = ShowOut8to15;
+	Show8bitIndicators((GPIOE -> ODR) >> 8, 8);
+}
+
+void ShowIn0to7(void)
+{
+	HideMenu();
+	ActualVisibleFunc = ShowIn0to7;
+	Show8bitIndicators(~(GPIOG -> IDR), 0);
+}
+
+void ShowIn8to15(void)
+{
+	HideMenu();
+	ActualVisibleFunc = ShowIn8to15;
+	Show8bitIndicators(~((GPIOG -> IDR) >> 8), 8);
+}
+
+void ShowPWMsetMenu(void)
+{
+//	char buff[6];
+//
+//	HideMenu();
+//	ActualVisibleFunc = ShowPWMsetMenu;
+//	ButtonRegisterPressCallback(&KeyDown, ShowMenu);
+//	SSD1306_Clear(BLACK);
+//
+//	for(uint8_t i; i<4; i++)
+//	{
+//		sprintf(buff, "%u", (uint16_t*)__HAL_TIM_GET_COMPARE(&htim4, i * 4));
+//		GFX_DrawString(3 + (30*i), 25, buff, WHITE, 1);
+//	}
+}
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+	if(hadc ->Instance == ADC1)
+	{
+		HAL_ADC_Start_DMA(&hadc1, (uint32_t*)Measurements.Adc1Value, 4);
+		ITCount++;
+	}
+}
 
 void MeasurementConversion(void)
 {
@@ -453,13 +583,15 @@ void IntervalFunc100ms(void)
 		 * Message to send id. 0.
 		 * 0/Input 16bit/Output 16bit/PWM1/PWM2/PWM3/PWM4/Temperature/12V/5V/Current
 		 */
-		sprintf(MsgToSend, "0/%u/%u/%u/%u/%u/%u/%.2f",   (uint16_t*)GPIOG->IDR,
+		sprintf(MsgToSend, "0/%u/%u/%u/%u/%u/%u/%.2f/%.2f",
+									(uint16_t*)((~GPIOG->IDR)&0xff),
 									(uint16_t*)GPIOE->ODR,
 									(uint16_t*)__HAL_TIM_GetCompare(&htim4, TIM_CHANNEL_1),
 									(uint16_t*)__HAL_TIM_GetCompare(&htim4, TIM_CHANNEL_2),
 									(uint16_t*)__HAL_TIM_GetCompare(&htim4, TIM_CHANNEL_3),
 									(uint16_t*)__HAL_TIM_GetCompare(&htim4, TIM_CHANNEL_4),
-									Temperature);
+									Temperature,
+									Measurements.InternalTemperature);
 		UsbBuffWrite(MsgToSend);
 		OldTick100ms = HAL_GetTick();
 	}

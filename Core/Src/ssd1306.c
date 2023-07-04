@@ -18,7 +18,7 @@ static DMA_HandleTypeDef *oled_buff_dma;
 static uint8_t buffer[SSD1306_BUFFER_SIZE];
 static uint8_t buffer_disp[SSD1306_BUFFER_SIZE];
 
-static void SSD1306_Command(uint8_t Command)
+void SSD1306_Command(uint8_t Command)
 {
 	HAL_I2C_Mem_Write(oled_i2c, (SSD1306_ADRESS<<1), 0x00, 1, &Command, 1, SSD1306_TIMEOUT);
 }
@@ -133,7 +133,7 @@ HAL_StatusTypeDef SSD1306_Init(I2C_HandleTypeDef *i2c, DMA_HandleTypeDef *dma)
 	SSD1306_Command(SSD1306_SETCOMPINS);
 	SSD1306_Command(0x12);
 	SSD1306_Command(SSD1306_SETCONTRAST);
-	SSD1306_Command(0xFF);
+	SSD1306_Command(0x10);
 
 	SSD1306_Command(SSD1306_SETPRECHARGE); // 0xd9
 	SSD1306_Command(0xF1);

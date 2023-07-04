@@ -35,8 +35,29 @@ struct menu_struct {
 
 extern menu_t menu1;
 extern 	menu_t sub_menu1_1;
-extern 		menu_t sub_menu1_1_1;
 extern 	menu_t sub_menu1_2;
+extern 	menu_t sub_menu1_3;
+extern 	menu_t sub_menu1_4;
+extern 	menu_t sub_menu1_5;
+extern 	menu_t sub_menu1_6;
+extern 		menu_t sub_menu1_6_1;
+extern 		menu_t sub_menu1_6_2;
+extern 		menu_t sub_menu1_6_3;
+extern 		menu_t sub_menu1_6_4;
+extern 		menu_t sub_menu1_6_5;
+extern 		menu_t sub_menu1_6_6;
+extern 		menu_t sub_menu1_6_7;
+extern 		menu_t sub_menu1_6_8;
+extern 		menu_t sub_menu1_6_9;
+extern 		menu_t sub_menu1_6_10;
+extern 		menu_t sub_menu1_6_11;
+extern 		menu_t sub_menu1_6_12;
+extern 		menu_t sub_menu1_6_13;
+extern 		menu_t sub_menu1_6_14;
+extern 		menu_t sub_menu1_6_15;
+extern 		menu_t sub_menu1_6_16;
+extern 		menu_t sub_menu1_6_17;
+extern 	menu_t sub_menu1_7;
 extern menu_t menu2;
 extern 	menu_t sub_menu2_1;
 extern 	menu_t sub_menu2_2;
@@ -57,6 +78,13 @@ extern 		menu_t sub_menu6_3;
 
 extern void ShowMeasurements(void);
 extern void ShowTemperature(void);
+extern void ShowOut0to7(void);
+extern void ShowOut8to15(void);
+extern void ShowIn0to7(void);
+extern void ShowIn8to15(void);
+extern void ShowPWMsetMenu(void);
+
+
 
 void MenuNext(void);
 void MenuPrev(void);
