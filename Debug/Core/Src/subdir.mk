@@ -14,6 +14,7 @@ C_SRCS += \
 ../Core/Src/ds18b20.c \
 ../Core/Src/gpio.c \
 ../Core/Src/i2c.c \
+../Core/Src/led_blink.c \
 ../Core/Src/main.c \
 ../Core/Src/menu.c \
 ../Core/Src/menu_out_set.c \
@@ -39,6 +40,7 @@ OBJS += \
 ./Core/Src/ds18b20.o \
 ./Core/Src/gpio.o \
 ./Core/Src/i2c.o \
+./Core/Src/led_blink.o \
 ./Core/Src/main.o \
 ./Core/Src/menu.o \
 ./Core/Src/menu_out_set.o \
@@ -64,6 +66,7 @@ C_DEPS += \
 ./Core/Src/ds18b20.d \
 ./Core/Src/gpio.d \
 ./Core/Src/i2c.d \
+./Core/Src/led_blink.d \
 ./Core/Src/main.d \
 ./Core/Src/menu.d \
 ./Core/Src/menu_out_set.d \
@@ -87,7 +90,7 @@ Core/Src/%.o Core/Src/%.su Core/Src/%.cyclo: ../Core/Src/%.c Core/Src/subdir.mk
 clean: clean-Core-2f-Src
 
 clean-Core-2f-Src:
-	-$(RM) ./Core/Src/1wire.cyclo ./Core/Src/1wire.d ./Core/Src/1wire.o ./Core/Src/1wire.su ./Core/Src/GFX_BW.cyclo ./Core/Src/GFX_BW.d ./Core/Src/GFX_BW.o ./Core/Src/GFX_BW.su ./Core/Src/M24Cxx.cyclo ./Core/Src/M24Cxx.d ./Core/Src/M24Cxx.o ./Core/Src/M24Cxx.su ./Core/Src/adc.cyclo ./Core/Src/adc.d ./Core/Src/adc.o ./Core/Src/adc.su ./Core/Src/button.cyclo ./Core/Src/button.d ./Core/Src/button.o ./Core/Src/button.su ./Core/Src/dma.cyclo ./Core/Src/dma.d ./Core/Src/dma.o ./Core/Src/dma.su ./Core/Src/ds18b20.cyclo ./Core/Src/ds18b20.d ./Core/Src/ds18b20.o ./Core/Src/ds18b20.su ./Core/Src/gpio.cyclo ./Core/Src/gpio.d ./Core/Src/gpio.o ./Core/Src/gpio.su ./Core/Src/i2c.cyclo ./Core/Src/i2c.d ./Core/Src/i2c.o ./Core/Src/i2c.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/menu.cyclo ./Core/Src/menu.d ./Core/Src/menu.o ./Core/Src/menu.su ./Core/Src/menu_out_set.cyclo ./Core/Src/menu_out_set.d ./Core/Src/menu_out_set.o ./Core/Src/menu_out_set.su ./Core/Src/parser_complex.cyclo ./Core/Src/parser_complex.d ./Core/Src/parser_complex.o ./Core/Src/parser_complex.su ./Core/Src/ring_buffer.cyclo ./Core/Src/ring_buffer.d ./Core/Src/ring_buffer.o ./Core/Src/ring_buffer.su ./Core/Src/ssd1306.cyclo ./Core/Src/ssd1306.d ./Core/Src/ssd1306.o ./Core/Src/ssd1306.su ./Core/Src/stm32f1xx_hal_msp.cyclo ./Core/Src/stm32f1xx_hal_msp.d ./Core/Src/stm32f1xx_hal_msp.o ./Core/Src/stm32f1xx_hal_msp.su ./Core/Src/stm32f1xx_it.cyclo ./Core/Src/stm32f1xx_it.d ./Core/Src/stm32f1xx_it.o ./Core/Src/stm32f1xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_stm32f1xx.cyclo ./Core/Src/system_stm32f1xx.d ./Core/Src/system_stm32f1xx.o ./Core/Src/system_stm32f1xx.su ./Core/Src/tim.cyclo ./Core/Src/tim.d ./Core/Src/tim.o ./Core/Src/tim.su ./Core/Src/usart.cyclo ./Core/Src/usart.d ./Core/Src/usart.o ./Core/Src/usart.su ./Core/Src/utils.cyclo ./Core/Src/utils.d ./Core/Src/utils.o ./Core/Src/utils.su
+	-$(RM) ./Core/Src/1wire.cyclo ./Core/Src/1wire.d ./Core/Src/1wire.o ./Core/Src/1wire.su ./Core/Src/GFX_BW.cyclo ./Core/Src/GFX_BW.d ./Core/Src/GFX_BW.o ./Core/Src/GFX_BW.su ./Core/Src/M24Cxx.cyclo ./Core/Src/M24Cxx.d ./Core/Src/M24Cxx.o ./Core/Src/M24Cxx.su ./Core/Src/adc.cyclo ./Core/Src/adc.d ./Core/Src/adc.o ./Core/Src/adc.su ./Core/Src/button.cyclo ./Core/Src/button.d ./Core/Src/button.o ./Core/Src/button.su ./Core/Src/dma.cyclo ./Core/Src/dma.d ./Core/Src/dma.o ./Core/Src/dma.su ./Core/Src/ds18b20.cyclo ./Core/Src/ds18b20.d ./Core/Src/ds18b20.o ./Core/Src/ds18b20.su ./Core/Src/gpio.cyclo ./Core/Src/gpio.d ./Core/Src/gpio.o ./Core/Src/gpio.su ./Core/Src/i2c.cyclo ./Core/Src/i2c.d ./Core/Src/i2c.o ./Core/Src/i2c.su ./Core/Src/led_blink.cyclo ./Core/Src/led_blink.d ./Core/Src/led_blink.o ./Core/Src/led_blink.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/menu.cyclo ./Core/Src/menu.d ./Core/Src/menu.o ./Core/Src/menu.su ./Core/Src/menu_out_set.cyclo ./Core/Src/menu_out_set.d ./Core/Src/menu_out_set.o ./Core/Src/menu_out_set.su ./Core/Src/parser_complex.cyclo ./Core/Src/parser_complex.d ./Core/Src/parser_complex.o ./Core/Src/parser_complex.su ./Core/Src/ring_buffer.cyclo ./Core/Src/ring_buffer.d ./Core/Src/ring_buffer.o ./Core/Src/ring_buffer.su ./Core/Src/ssd1306.cyclo ./Core/Src/ssd1306.d ./Core/Src/ssd1306.o ./Core/Src/ssd1306.su ./Core/Src/stm32f1xx_hal_msp.cyclo ./Core/Src/stm32f1xx_hal_msp.d ./Core/Src/stm32f1xx_hal_msp.o ./Core/Src/stm32f1xx_hal_msp.su ./Core/Src/stm32f1xx_it.cyclo ./Core/Src/stm32f1xx_it.d ./Core/Src/stm32f1xx_it.o ./Core/Src/stm32f1xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_stm32f1xx.cyclo ./Core/Src/system_stm32f1xx.d ./Core/Src/system_stm32f1xx.o ./Core/Src/system_stm32f1xx.su ./Core/Src/tim.cyclo ./Core/Src/tim.d ./Core/Src/tim.o ./Core/Src/tim.su ./Core/Src/usart.cyclo ./Core/Src/usart.d ./Core/Src/usart.o ./Core/Src/usart.su ./Core/Src/utils.cyclo ./Core/Src/utils.d ./Core/Src/utils.o ./Core/Src/utils.su
 
 .PHONY: clean-Core-2f-Src
 

@@ -41,6 +41,7 @@
 #include "fonts/fonts.h"
 #include "button.h"
 #include "menu.h"
+#include "led_blink.h"
 
 /* USER CODE END Includes */
 
@@ -66,6 +67,8 @@
 /* USER CODE BEGIN PV */
 button_t KeyUp, KeyDown;
 
+blink_t CommPcUsb;
+
 RingBuffer_t ReceiveBuffer;
 RingBuffer_t TransmitBuffer;
 
@@ -86,6 +89,7 @@ uint8_t ds1[DS18B20_ROM_CODE_SIZE];
 m24cxx_t M24C02;
 uint8_t EpromBufer[255];
 
+uint8_t PwmSetPtr = 9;
 
 volatile uint32_t ITCount;
 
@@ -106,7 +110,6 @@ volatile struct Measurements{
 	float Current;
 	float InternalTemperature;
 }Measurements;
-
 
 
 
@@ -143,6 +146,11 @@ void ShowOut8to15(void);
 void ShowIn0to7(void);
 void ShowIn8to15(void);
 void ShowPWMsetMenu(void);
+	void PwmSetPtrIncrement(void);
+	void PwmSetIncrement(void);
+	void PwmSetDecrement(void);
+	void PwmSetIncrement25(void);
+	void PwmSetDecrement25(void);
 
 
 void all(uint8_t x);
@@ -208,8 +216,10 @@ int main(void)
     Error_Handler();
   }
 
-  ButtonInitKey(&KeyUp, BUTTON_UP_GPIO_Port, BUTTON_UP_Pin, 20, 1000, 500);
-  ButtonInitKey(&KeyDown, BUTTON_DOWN_GPIO_Port, BUTTON_DOWN_Pin, 20, 1000, 500);
+  ButtonInitKey(&KeyUp, BUTTON_UP_GPIO_Port, BUTTON_UP_Pin, 20, 1000, 350);
+  ButtonInitKey(&KeyDown, BUTTON_DOWN_GPIO_Port, BUTTON_DOWN_Pin, 20, 1000, 350);
+
+  LedBlinkInit(&CommPcUsb, COMM_PC_LED_GPIO_Port, COMM_PC_LED_Pin, 20);
 
   ShowMenu();
 
@@ -219,7 +229,10 @@ int main(void)
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
 
-  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 100);
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 0);
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 100);
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 10);
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 1000);
 
 
 
@@ -231,7 +244,6 @@ int main(void)
   m24cxxInit(&M24C02, &hi2c1, EEPROM_ADDRES, M24C02_MEM_SIZE, WC_EEPROM_GPIO_Port, WC_EEPROM_Pin);
 
   HAL_ADC_Start_DMA(&hadc1,(uint32_t*)Measurements.Adc1Value, 4);
-
 
 
   while (1)
@@ -248,10 +260,10 @@ int main(void)
 	  }
 	  if(DataToTransmit > 0 )
 	  {
-
 		  USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
 		  if (hcdc->TxState == 0)
 		  {
+			  LedBlinkOne(&CommPcUsb);
 			  UsbTransmitTask();
 
 			  DataToTransmit--;
@@ -259,12 +271,15 @@ int main(void)
 
 	  }
 
+
 	  IntervalFunc100ms();
 	  IntervalFunc500ms();
 	  IntervalFunc50ms();
 
 	  ButtonTask(&KeyDown);
 	  ButtonTask(&KeyUp);
+
+	  LedBlinkTask(&CommPcUsb);
 
 	  MeasurementConversion();
 
@@ -411,6 +426,7 @@ void ShowMenu(void)
 	ButtonRegisterPressCallback(&KeyDown, MenuNext);
 	ButtonRegisterRepeatCallback(&KeyDown, MenuPrev);
 	ButtonRegisterPressCallback(&KeyUp, MenuEnter);
+	ButtonRegisterRepeatCallback(&KeyUp, NULL);
 	ActualVisibleFunc = ScrollString;
 	MenuRefresh();
 }
@@ -513,19 +529,79 @@ void ShowIn8to15(void)
 
 void ShowPWMsetMenu(void)
 {
-//	char buff[6];
-//
-//	HideMenu();
-//	ActualVisibleFunc = ShowPWMsetMenu;
-//	ButtonRegisterPressCallback(&KeyDown, ShowMenu);
-//	SSD1306_Clear(BLACK);
-//
-//	for(uint8_t i; i<4; i++)
-//	{
-//		sprintf(buff, "%u", (uint16_t*)__HAL_TIM_GET_COMPARE(&htim4, i * 4));
-//		GFX_DrawString(3 + (30*i), 25, buff, WHITE, 1);
-//	}
+	char buff[6];
+	uint8_t Length;
+	HideMenu();
+	ActualVisibleFunc = ShowPWMsetMenu;
+	ButtonRegisterPressCallback(&KeyDown, PwmSetPtrIncrement);
+	SSD1306_Clear(BLACK);
+
+	for(uint8_t i = 0; i<4; i++)
+	{
+		Length = sprintf(buff, "%u", __HAL_TIM_GET_COMPARE(&htim4, i * 4));
+		GFX_DrawString(64-2 - (Length*5), 16*i, buff, WHITE, 1);
+	}
+
+	if(PwmSetPtr%2 && PwmSetPtr!=9)
+	{
+		ButtonRegisterPressCallback(&KeyUp, PwmSetDecrement);
+		ButtonRegisterRepeatCallback(&KeyUp, PwmSetDecrement25);
+		GFX_DrawChar(25, 16*(PwmSetPtr/2), '-', WHITE, 1);
+	}
+	else if(!(PwmSetPtr%2))
+	{
+		ButtonRegisterPressCallback(&KeyUp, PwmSetIncrement);
+		ButtonRegisterRepeatCallback(&KeyUp, PwmSetIncrement25);
+		GFX_DrawChar(91, 16*((PwmSetPtr/2)-1), '+', WHITE, 1);
+	}
+	else
+	{
+		ButtonRegisterPressCallback(&KeyUp, ShowMenu);
+		GFX_DrawString(0, 47, "<<", WHITE, 1);
+	}
 }
+
+	void PwmSetPtrIncrement(void)
+	{
+		PwmSetPtr++;
+		if(PwmSetPtr>=10)PwmSetPtr=1;
+	}
+	void PwmSetIncrement(void)
+	{
+		uint8_t CurrentPwmChannel = PwmSetPtr/2;
+		uint16_t PwmValue = __HAL_TIM_GET_COMPARE(&htim4, (CurrentPwmChannel - 1) * 4);
+
+		PwmValue += 1;
+		if(PwmValue > 1000) PwmValue = 0;
+		PwmChannelSet(CurrentPwmChannel, PwmValue);
+	}
+	void PwmSetDecrement(void)
+	{
+		uint8_t CurrentPwmChannel = PwmSetPtr/2 + 1;
+		uint16_t PwmValue = __HAL_TIM_GET_COMPARE(&htim4, (CurrentPwmChannel - 1)*4);
+
+		PwmValue -= 1;
+		if(PwmValue > 1000) PwmValue = 1000;
+		PwmChannelSet(CurrentPwmChannel, PwmValue);
+	}
+	void PwmSetIncrement25(void)
+	{
+		uint8_t CurrentPwmChannel = PwmSetPtr/2;
+		uint16_t PwmValue = __HAL_TIM_GET_COMPARE(&htim4, (CurrentPwmChannel - 1) * 4);
+
+		PwmValue += 25;
+		if(PwmValue > 1000) PwmValue = 0;
+		PwmChannelSet(CurrentPwmChannel, PwmValue);
+	}
+	void PwmSetDecrement25(void)
+	{
+		uint8_t CurrentPwmChannel = PwmSetPtr/2 + 1;
+		uint16_t PwmValue = __HAL_TIM_GET_COMPARE(&htim4, (CurrentPwmChannel - 1)*4);
+
+		PwmValue -= 25;
+		if(PwmValue > 1000) PwmValue = 1000;
+		PwmChannelSet(CurrentPwmChannel, PwmValue);
+	}
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
@@ -556,7 +632,6 @@ void IntervalFunc500ms(void)
 //		  }
 
 
-		  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
 
 		  static uint8_t TempMeasureFlag = 0;
 		  if(!TempMeasureFlag)
@@ -583,7 +658,7 @@ void IntervalFunc100ms(void)
 		 * Message to send id. 0.
 		 * 0/Input 16bit/Output 16bit/PWM1/PWM2/PWM3/PWM4/Temperature/12V/5V/Current
 		 */
-		sprintf(MsgToSend, "0/%u/%u/%u/%u/%u/%u/%.2f/%.2f",
+		sprintf(MsgToSend, "0/%u/%u/%u/%u/%u/%u/%.2f/%.2f/%.2f/%.2f/%.2f",
 									(uint16_t*)((~GPIOG->IDR)&0xff),
 									(uint16_t*)GPIOE->ODR,
 									(uint16_t*)__HAL_TIM_GetCompare(&htim4, TIM_CHANNEL_1),
@@ -591,7 +666,10 @@ void IntervalFunc100ms(void)
 									(uint16_t*)__HAL_TIM_GetCompare(&htim4, TIM_CHANNEL_3),
 									(uint16_t*)__HAL_TIM_GetCompare(&htim4, TIM_CHANNEL_4),
 									Temperature,
-									Measurements.InternalTemperature);
+									Measurements.InternalTemperature,
+									Measurements.Voltage12,
+									Measurements.Voltage5,
+									Measurements.Current);
 		UsbBuffWrite(MsgToSend);
 		OldTick100ms = HAL_GetTick();
 	}
@@ -626,6 +704,7 @@ void CDC_ReveiveCallback(uint8_t *Buffer, uint8_t Length)
 	if(Length > 0)
 	{
 		uint8_t i = 0;
+		LedBlinkOne(&CommPcUsb); //Control Led
 		while(i < Length)
 		{
 		if (RB_OK == Ring_Buffer_Write(&ReceiveBuffer, Buffer[i]))
