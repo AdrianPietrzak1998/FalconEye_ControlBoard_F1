@@ -45,7 +45,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Core/Inc/ring_buffer.h ../Core/Inc/utils.h \
  ../Core/Inc/parser_complex.h ../Core/Inc/ssd1306.h ../Core/Inc/GFX_BW.h \
  ../Core/Inc/fonts/fonts.h ../Core/Inc/fonts/font_8x5.h \
- ../Core/Inc/button.h ../Core/Inc/menu.h ../Core/Inc/led_blink.h
+ ../Core/Inc/button.h ../Core/Inc/menu.h ../Core/Inc/led_blink.h \
+ ../Core/Inc/Eeprom_backup.h ../Core/Inc/M24Cxx.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
 ../Core/Inc/stm32f1xx_hal_conf.h:
@@ -107,3 +108,5 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Inc/button.h:
 ../Core/Inc/menu.h:
 ../Core/Inc/led_blink.h:
+../Core/Inc/Eeprom_backup.h:
+../Core/Inc/M24Cxx.h:

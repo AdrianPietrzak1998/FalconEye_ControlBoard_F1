@@ -42,6 +42,7 @@
 #include "button.h"
 #include "menu.h"
 #include "led_blink.h"
+#include "Eeprom_backup.h"
 
 /* USER CODE END Includes */
 
@@ -55,6 +56,8 @@
 #define EEPROM_ADDRES 0x50
 #define V25 1.43F
 #define AVG_SLOPE 4.3F
+
+#define __LOGO_LED(x) __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, x);
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -80,14 +83,14 @@ uint8_t DataToTransmit;
 
 extern USBD_HandleTypeDef hUsbDeviceFS;
 
-uint32_t OldTick500ms, OldTick100ms, OldTick50ms;
+uint32_t OldTick500ms, OldTick100ms, OldTick50ms, OldTick10000ms;
 
 int32_t Temp;
 float Temperature;
 uint8_t ds1[DS18B20_ROM_CODE_SIZE];
 
 m24cxx_t M24C02;
-uint8_t EpromBufer[255];
+
 
 uint8_t PwmSetPtr = 9;
 
@@ -113,6 +116,7 @@ volatile struct Measurements{
 
 
 
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -122,7 +126,7 @@ static void MX_NVIC_Init(void);
 void UsbBuffWrite(char * Message);
 void UsbTransmitTask(void);
 
-
+void IntervalFunc10000ms(void);
 void IntervalFunc500ms(void);
 void IntervalFunc100ms(void);
 void IntervalFunc50ms(void);
@@ -210,6 +214,7 @@ int main(void)
   OldTick500ms = HAL_GetTick();
   OldTick100ms = HAL_GetTick();
   OldTick50ms = HAL_GetTick();
+  OldTick10000ms = HAL_GetTick();
 
   if (ds18b20_read_address(ds1) != HAL_OK)
   {
@@ -228,13 +233,9 @@ int main(void)
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 
-  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 0);
-  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 100);
-  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 10);
-  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 1000);
-
-
+  __LOGO_LED(100);
 
   /* USER CODE END 2 */
 
@@ -244,6 +245,9 @@ int main(void)
   m24cxxInit(&M24C02, &hi2c1, EEPROM_ADDRES, M24C02_MEM_SIZE, WC_EEPROM_GPIO_Port, WC_EEPROM_Pin);
 
   HAL_ADC_Start_DMA(&hadc1,(uint32_t*)Measurements.Adc1Value, 4);
+
+  EepromInit(&M24C02);
+  EepromRecovery();
 
 
   while (1)
@@ -275,6 +279,7 @@ int main(void)
 	  IntervalFunc100ms();
 	  IntervalFunc500ms();
 	  IntervalFunc50ms();
+	  IntervalFunc10000ms();
 
 	  ButtonTask(&KeyDown);
 	  ButtonTask(&KeyUp);
@@ -448,7 +453,7 @@ void ShowMeasurements(void)
 	char buff[16];
 	sprintf(buff, "5V:   %.2fV", Measurements.Voltage5);
 	GFX_DrawString(0, 0, buff, WHITE, 1);
-	sprintf(buff, "12V:  %.2fV", Measurements.Voltage12);
+	sprintf(buff, "12V: %.2fV", Measurements.Voltage12);
 	GFX_DrawString(0, 16, buff, WHITE, 1);
 	sprintf(buff, "Curr: %.2fA", Measurements.Current);
 	GFX_DrawString(0, 32, buff, WHITE, 1);
@@ -614,10 +619,21 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 void MeasurementConversion(void)
 {
+	Measurements.Voltage12 = Measurements.Voltage12Raw /1241.0F * 5;
 	Measurements.Voltage5 = Measurements.Voltage5Raw /1241.0F*2;
 	Measurements.InternalTemperature = ((Measurements.InternalTemperatureRaw /1241.0F) - V25) / AVG_SLOPE + 25;
 }
 
+
+void IntervalFunc10000ms(void)
+{
+	if(HAL_GetTick() - OldTick10000ms >10000)
+	{
+		EepromRefresh(&M24C02);
+
+		OldTick10000ms = HAL_GetTick();
+	}
+}
 
 
 void IntervalFunc500ms(void)
@@ -680,6 +696,11 @@ void IntervalFunc50ms(void)
 {
 	if(HAL_GetTick() - OldTick50ms >50)
 	{
+		if(ActualVisibleFunc != ShowPWMsetMenu)
+		{
+			EepromBackup(&M24C02);
+		}
+
 		if(ActualVisibleFunc != NULL)
 		{
 			ActualVisibleFunc();
