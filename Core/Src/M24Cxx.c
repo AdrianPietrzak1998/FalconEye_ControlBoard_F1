@@ -53,6 +53,7 @@ uint8_t m24cxxWrite8Bit(m24cxx_t *m24, uint8_t DataAddr, uint8_t *Data)
 	if((m24->i2c)->hdmatx->State == HAL_DMA_STATE_READY)
 	{
 	HAL_I2C_Mem_Write_DMA(m24 -> i2c, m24 -> addr, DataAddr, 1, Data, 1);
+	m24 -> OldTickWriteEeprom = HAL_GetTick();
 	return HAL_OK;
 	}
 	else

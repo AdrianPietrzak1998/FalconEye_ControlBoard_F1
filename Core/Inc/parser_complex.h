@@ -19,6 +19,8 @@ extern uint8_t FanSpeed;
  * PWM_ALL (PWM1, PWM2 0 - 1000, ...)
  * PWM_CHANNEL_SET (PWM_CHANNEL 1 - 4, PWM 0 - 1000)
  * DISPLAY_CONTRAST (CONTRAST 0 - 255)
+ * LIGHT_PARAMETER (MODE -1 - 3, MAXIMUM PWM VALUE 1 - 1000, DIMMER SPEED 1 - 65535)
+ * LOGO_PARAMETER (MODE -1 - 3, MAXIMUM PWM VALUE 1 - 1000, DIMMER SPEED 1 - 65535)
  */
 
 typedef enum{
@@ -27,7 +29,9 @@ typedef enum{
 	OUT_PIN_TOGGLE,
 	PWM_ALL,
 	PWM_CHANNEL_SET,
-	DISPLAY_CONTRAST
+	DISPLAY_CONTRAST,
+	LIGHT_PARAM,
+	LOGO_PARAM
 
 }ReceivedCommand_t;
 
@@ -47,6 +51,8 @@ extern void OutputPinToggle(uint8_t Pin);
 extern void PwmSet(uint16_t Pwm1, uint16_t Pwm2, uint16_t Pwm3, uint16_t Pwm4);
 extern void PwmChannelSet(uint8_t Channel, uint16_t Value);
 extern void DisplayContrast(uint8_t Contrast);
+extern void LightLedSetParameter(uint8_t Mode, uint16_t PwmValue, uint16_t DimmerSpeed);
+extern void LogoLedSetParameter(uint8_t Mode, uint16_t PwmValue, uint16_t DimmerSpeed);
 //
 //
 //

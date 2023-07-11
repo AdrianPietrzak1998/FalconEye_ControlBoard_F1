@@ -13,10 +13,10 @@
 #include "stdio.h"
 #include "stdlib.h"
 
+#define ReceivedArgumentSize 16
 
 
-
-int32_t ReceivedCommandArgument[16];
+int32_t ReceivedCommandArgument[ReceivedArgumentSize];
 
 struct Command CommandMapper[] = {
 		{OUT_REG, OutputSet, 1},
@@ -25,6 +25,8 @@ struct Command CommandMapper[] = {
 		{PWM_ALL, PwmSet, 4},
 		{PWM_CHANNEL_SET, PwmChannelSet, 2},
 		{DISPLAY_CONTRAST, DisplayContrast, 1},
+		{LIGHT_PARAM, LightLedSetParameter, 3},
+		{LOGO_PARAM, LogoLedSetParameter, 3}
 };
 
 void Parser_TakeLine(RingBuffer_t *Buff, uint8_t *Destination)
@@ -65,6 +67,12 @@ void Parser_parse(uint8_t * DataToParse)
 		}
 
  		CommandMapper[CommandID].Action(ReceivedCommandArgument[0], ReceivedCommandArgument[1], ReceivedCommandArgument[2], ReceivedCommandArgument[3]);
+
+ 		//Earising argument buffer
+ 		for(uint8_t i=0; i<ReceivedArgumentSize; i++)
+ 		{
+ 			ReceivedCommandArgument[i] = 0;
+ 		}
  		UsbBuffWrite("OK");
 	}
 }

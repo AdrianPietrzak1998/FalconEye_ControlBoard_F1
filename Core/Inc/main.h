@@ -36,7 +36,24 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+typedef struct{
+	int8_t Mode;
+	uint16_t PwmMax;
+	TIM_HandleTypeDef *htim;
+	uint8_t Channel;
+	uint16_t PwmActual;
+	uint32_t LastTick;
+	uint16_t DimmerSpeed;
 
+	uint8_t Direction;
+}LedLightParameter_t;
+
+enum PwmFreqency{
+	HZ60 = 1199,
+	HZ100 = 719,
+	HZ200 = 359,
+	HZ300 = 239
+};
 
 /* USER CODE END ET */
 
@@ -47,6 +64,10 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
+#define __LOGO_LED_SET(x) __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, x)
+#define __LOGO_LED_GET __HAL_TIM_GET_COMPARE(&htim3, TIM_CHANNEL_1)
+#define __LIGHT_LED_SET(x) __HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_2, x)
+#define __LIGHT_LED_GET __HAL_TIM_GET_COMPARE(&htim5, TIM_CHANNEL_2)
 
 /* USER CODE END EM */
 

@@ -11,6 +11,8 @@
 enum EepromAddr EepromAddr;
 struct EepromMirror EepromMirror;
 
+extern TIM_HandleTypeDef htim4;
+
 uint32_t OldTickReadEeprom;
 
 void EepromInit(m24cxx_t *dev)
@@ -29,6 +31,14 @@ void EepromRecovery(void)
 	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, EepromMirror.EepromPwm2);
 	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, EepromMirror.EepromPwm3);
 	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, EepromMirror.EepromPwm4);
+	Logo.Mode = EepromMirror.EepromLogoMode;
+	Logo.PwmMax = EepromMirror.EepromLogoPwmMax;
+	Logo.DimmerSpeed = EepromMirror.EepromLogoDimmingSpeed;
+	Light.Mode = EepromMirror.EepromLightMode;
+	Light.PwmMax = EepromMirror.EepromLightPwmMax;
+	Light.DimmerSpeed = EepromMirror.EepromLightDimmingSpeed;
+	htim4.Init.Prescaler = EepromMirror.EepromPwmFreqPrescaler;
+
 }
 
 static void EepromVarAssig(void)
@@ -38,20 +48,31 @@ static void EepromVarAssig(void)
 	EepromMirror.EepromPwm2 = __HAL_TIM_GET_COMPARE(&htim4, TIM_CHANNEL_2);
 	EepromMirror.EepromPwm3 = __HAL_TIM_GET_COMPARE(&htim4, TIM_CHANNEL_3);
 	EepromMirror.EepromPwm4 = __HAL_TIM_GET_COMPARE(&htim4, TIM_CHANNEL_4);
+	EepromMirror.EepromLogoMode = Logo.Mode;
+	EepromMirror.EepromLogoPwmMax = Logo.PwmMax;
+	EepromMirror.EepromLogoDimmingSpeed = Logo.DimmerSpeed;
+	EepromMirror.EepromLightMode = Light.Mode;
+	EepromMirror.EepromLightPwmMax = Light.PwmMax;
+	EepromMirror.EepromLightDimmingSpeed = Light.DimmerSpeed;
+	EepromMirror.EepromPwmFreqPrescaler = htim4.Init.Prescaler;
+
 }
 
 void EepromBackup(m24cxx_t *dev)
 {
-	EepromVarAssig();
-
-	for(uint16_t i = 0; i<dev->memsize; i++)
+	if(HAL_GetTick() - dev->OldTickWriteEeprom > M24_WRITE_TIME)
 	{
-		if(EepromMirror.EepromBufferMirror[i] != EepromMirror.EpromBuffer[i])
+		EepromVarAssig();
+
+		for(uint16_t i = 0; i<dev->memsize; i++)
 		{
-			m24cxxWrite8Bit(dev, i, &EepromMirror.EpromBuffer[i]);
-//			EepromMirror.EepromBufferMirror[i] = EepromMirror.EpromBuffer[i];
-			m24cxxRead8Bit(dev, i, &EepromMirror.EepromBufferMirror[i]);
-			break;
+			if(EepromMirror.EepromBufferMirror[i] != EepromMirror.EpromBuffer[i])
+			{
+				m24cxxWrite8Bit(dev, i, &EepromMirror.EpromBuffer[i]);
+//				EepromMirror.EepromBufferMirror[i] = EepromMirror.EpromBuffer[i];
+				m24cxxRead8Bit(dev, i, &EepromMirror.EepromBufferMirror[i]);
+				break;
+			}
 		}
 	}
 }

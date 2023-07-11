@@ -57,7 +57,8 @@
 #define V25 1.43F
 #define AVG_SLOPE 4.3F
 
-#define __LOGO_LED(x) __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, x);
+#define DOOR_OPEN !HAL_GPIO_ReadPin(SW_OPEN_GPIO_Port, SW_OPEN_Pin)
+#define DOOR_CLOSED HAL_GPIO_ReadPin(SW_OPEN_GPIO_Port, SW_OPEN_Pin)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -93,6 +94,8 @@ m24cxx_t M24C02;
 
 
 uint8_t PwmSetPtr = 9;
+uint8_t LedParamSetPtr = 5;
+LedLightParameter_t *LedLightActualEdit;
 
 volatile uint32_t ITCount;
 
@@ -115,6 +118,11 @@ volatile struct Measurements{
 }Measurements;
 
 
+
+LedLightParameter_t Logo;
+LedLightParameter_t Light;
+
+enum PwmFreqency PwmFrequency;
 
 
 /* USER CODE END PV */
@@ -140,6 +148,11 @@ void PwmSet(uint16_t Pwm1, uint16_t Pwm2, uint16_t Pwm3, uint16_t Pwm4);
 void PwmChannelSet(uint8_t Channel, uint16_t Value);
 void DisplayContrast(uint8_t Contrast);
 
+void LogoLedSetParameter(uint8_t Mode, uint16_t PwmValue, uint16_t DimmerSpeed);
+void LightLedSetParameter(uint8_t Mode, uint16_t PwmValue, uint16_t DimmerSpeed);
+void LedLightTask(LedLightParameter_t *Instance);
+void LedLightInit(LedLightParameter_t *Instance, TIM_HandleTypeDef *htim, uint8_t Channel, uint16_t DimmerSpeed);
+
 void ShowMenu(void);
 void HideMenu(void);
 void ShowMeasurements(void);
@@ -155,9 +168,16 @@ void ShowPWMsetMenu(void);
 	void PwmSetDecrement(void);
 	void PwmSetIncrement25(void);
 	void PwmSetDecrement25(void);
+void ShowLedLightParam(LedLightParameter_t *Instance);
+	void LedLightParamPtrIncrement(void);
+	void LedLightParamIncrement(void);
+	void LedLightParamDecrement(void);
+	void LedLightParamIncrement25(void);
+	void LedLightParamDecrement25(void);
+	void ShowLedLightParamLogo(void);
+	void ShowLedLightParamLight(void);
 
-
-void all(uint8_t x);
+void PwmFreqSet(uint16_t PwmFrequency);
 
 void (*ActualVisibleFunc)(void);
 
@@ -205,6 +225,7 @@ int main(void)
   MX_TIM4_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
+  MX_TIM5_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
@@ -234,8 +255,10 @@ int main(void)
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_2);
 
-  __LOGO_LED(100);
+  LedLightInit(&Logo, &htim3, TIM_CHANNEL_1, 20);
+  LedLightInit(&Light, &htim5, TIM_CHANNEL_2, 20);
 
   /* USER CODE END 2 */
 
@@ -248,6 +271,7 @@ int main(void)
 
   EepromInit(&M24C02);
   EepromRecovery();
+
 
 
   while (1)
@@ -288,7 +312,8 @@ int main(void)
 
 	  MeasurementConversion();
 
-
+	  LedLightTask(&Logo);
+	  LedLightTask(&Light);
 
 
     /* USER CODE END WHILE */
@@ -373,9 +398,13 @@ static void MX_NVIC_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-void all(uint8_t x)
+void PwmFreqSet(uint16_t PwmFrequency)
 {
-	HAL_Delay(x);
+	  htim4.Init.Prescaler = PwmFrequency;
+	  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+	  {
+	    Error_Handler();
+	  }
 }
 
 void OutputSet(uint16_t ODRvalue)
@@ -424,6 +453,110 @@ void DisplayContrast(uint8_t Contrast)
 	SSD1306_Command(Contrast);
 }
 
+void LogoLedSetParameter(uint8_t Mode, uint16_t PwmValue, uint16_t DimmerSpeed)
+{
+	Logo.Mode = Mode;
+	if(PwmValue != 0) Logo.PwmMax = PwmValue;
+	if(DimmerSpeed != 0) Logo.DimmerSpeed = DimmerSpeed;
+}
+
+void LightLedSetParameter(uint8_t Mode, uint16_t PwmValue, uint16_t DimmerSpeed)
+{
+	Light.Mode = Mode;
+	if(PwmValue != 0) Light.PwmMax = PwmValue;
+	if(DimmerSpeed != 0)Light.DimmerSpeed = DimmerSpeed;
+}
+
+void LedLightTask(LedLightParameter_t *Instance)
+{
+	switch(Instance -> Mode)
+	{
+	case -1:
+		break;
+	case 0:
+		__HAL_TIM_SET_COMPARE(Instance->htim, Instance->Channel, 0);
+		break;
+	case 1:
+		if(Instance -> PwmActual > Instance -> PwmMax)
+		{
+			Instance -> PwmActual = Instance -> PwmMax;
+			__HAL_TIM_SET_COMPARE(Instance->htim, Instance->Channel, Instance->PwmActual);
+		}
+		if(DOOR_OPEN)
+		{
+			if(HAL_GetTick() - Instance->LastTick > Instance->DimmerSpeed && Instance->PwmActual <= Instance->PwmMax)
+			{
+				Instance->PwmActual++;
+				__HAL_TIM_SET_COMPARE(Instance->htim, Instance->Channel, Instance->PwmActual);
+				Instance->LastTick = HAL_GetTick();
+			}
+		}
+		else if(DOOR_CLOSED)
+		{
+			if(HAL_GetTick() - Instance->LastTick > Instance->DimmerSpeed && Instance->PwmActual > 0)
+			{
+				Instance->PwmActual--;
+				__HAL_TIM_SET_COMPARE(Instance->htim, Instance->Channel, Instance->PwmActual);
+				Instance->LastTick = HAL_GetTick();
+			}
+		}
+		break;
+	case 2:
+		if(Instance -> PwmActual > Instance -> PwmMax)
+			{
+			Instance -> PwmActual = Instance -> PwmMax;
+			__HAL_TIM_SET_COMPARE(Instance->htim, Instance->Channel, Instance->PwmActual);
+			}
+		if(DOOR_OPEN)
+		{
+			if(HAL_GetTick() - Instance->LastTick > Instance->DimmerSpeed && Instance->PwmActual > 0)
+			{
+				Instance->PwmActual--;
+				__HAL_TIM_SET_COMPARE(Instance->htim, Instance->Channel, Instance->PwmActual);
+				Instance->LastTick = HAL_GetTick();
+			}
+		}
+		else if(DOOR_CLOSED)
+		{
+			if(HAL_GetTick() - Instance->LastTick > Instance->DimmerSpeed && Instance->PwmActual < Instance->PwmMax)
+			{
+				Instance->PwmActual++;
+				__HAL_TIM_SET_COMPARE(Instance->htim, Instance->Channel, Instance->PwmActual);
+				Instance->LastTick = HAL_GetTick();
+			}
+		}
+		break;
+	case 3:
+		if(!Instance->Direction)
+		{
+			if(HAL_GetTick() - Instance->LastTick > Instance->DimmerSpeed && Instance->PwmActual > 50)
+			{
+				Instance->PwmActual--;
+				__HAL_TIM_SET_COMPARE(Instance->htim, Instance->Channel, Instance->PwmActual);
+				Instance->LastTick = HAL_GetTick();
+			}
+			if(Instance->PwmActual <= 50) Instance -> Direction = 1;
+		}
+		else if(Instance->Direction)
+		{
+			if(HAL_GetTick() - Instance->LastTick > Instance->DimmerSpeed && Instance->PwmActual <= Instance->PwmMax)
+			{
+				Instance->PwmActual++;
+				__HAL_TIM_SET_COMPARE(Instance->htim, Instance->Channel, Instance->PwmActual);
+				Instance->LastTick = HAL_GetTick();
+			}
+			if(Instance->PwmActual >= Instance->PwmMax) Instance -> Direction = 0;
+		}
+
+	}
+}
+
+void LedLightInit(LedLightParameter_t *Instance, TIM_HandleTypeDef *htim, uint8_t Channel, uint16_t DimmerSpeed)
+{
+	Instance -> htim = htim;
+	Instance -> Channel = Channel;
+	Instance -> DimmerSpeed = DimmerSpeed;
+}
 
 
 void ShowMenu(void)
@@ -453,7 +586,7 @@ void ShowMeasurements(void)
 	char buff[16];
 	sprintf(buff, "5V:   %.2fV", Measurements.Voltage5);
 	GFX_DrawString(0, 0, buff, WHITE, 1);
-	sprintf(buff, "12V: %.2fV", Measurements.Voltage12);
+	sprintf(buff, "12V: %5.2fV", Measurements.Voltage12);
 	GFX_DrawString(0, 16, buff, WHITE, 1);
 	sprintf(buff, "Curr: %.2fA", Measurements.Current);
 	GFX_DrawString(0, 32, buff, WHITE, 1);
@@ -608,6 +741,116 @@ void ShowPWMsetMenu(void)
 		PwmChannelSet(CurrentPwmChannel, PwmValue);
 	}
 
+void ShowLedLightParam(LedLightParameter_t *Instance)
+{
+	char buff[6];
+	uint8_t Length;
+
+	ButtonRegisterPressCallback(&KeyDown, LedLightParamPtrIncrement);
+	SSD1306_Clear(BLACK);
+
+	GFX_DrawString(0, 0, "PWM", WHITE, 1);
+	GFX_DrawString(0, 32, "Speed", WHITE, 1);
+	Length = sprintf(buff, "%u", Instance ->PwmMax);
+	GFX_DrawString(64-2 - (Length*5), 16, buff, WHITE, 1);
+	Length = sprintf(buff, "%u", Instance ->DimmerSpeed);
+	GFX_DrawString(64-2 - (Length*5), 48, buff, WHITE, 1);
+
+	if(LedParamSetPtr%2 && LedParamSetPtr!=5)
+	{
+		ButtonRegisterPressCallback(&KeyUp, LedLightParamDecrement);
+		ButtonRegisterRepeatCallback(&KeyUp, LedLightParamDecrement25);
+		GFX_DrawChar(25, 16*LedParamSetPtr, '-', WHITE, 1);
+	}
+	else if(!(LedParamSetPtr%2)&& LedParamSetPtr!=5)
+	{
+		ButtonRegisterPressCallback(&KeyUp, LedLightParamIncrement);
+		ButtonRegisterRepeatCallback(&KeyUp, LedLightParamIncrement25);
+		GFX_DrawChar(91, 16*(LedParamSetPtr-1), '+', WHITE, 1);
+	}
+	else
+	{
+		ButtonRegisterPressCallback(&KeyUp, ShowMenu);
+		GFX_DrawString(0, 47, "<<", WHITE, 1);
+	}
+}
+	void LedLightParamPtrIncrement(void)
+	{
+		LedParamSetPtr++;
+		if(LedParamSetPtr >= 6)
+		{
+			LedParamSetPtr = 1;
+		}
+	}
+	void LedLightParamIncrement(void)
+	{
+		switch(LedParamSetPtr/2)
+		{
+		case 1:
+			LedLightActualEdit -> PwmMax++;
+			if(LedLightActualEdit -> PwmMax > 1000) LedLightActualEdit->PwmMax = 0;
+			break;
+		case 2:
+			LedLightActualEdit -> DimmerSpeed++;
+			if(LedLightActualEdit -> DimmerSpeed >1000) LedLightActualEdit->DimmerSpeed = 0;
+			break;
+		}
+	}
+	void LedLightParamIncrement25(void)
+	{
+		switch(LedParamSetPtr/2)
+		{
+		case 1:
+			LedLightActualEdit -> PwmMax += 25;
+			if(LedLightActualEdit -> PwmMax > 1000) LedLightActualEdit->PwmMax = 0;
+			break;
+		case 2:
+			LedLightActualEdit -> DimmerSpeed += 25;
+			if(LedLightActualEdit -> DimmerSpeed >1000) LedLightActualEdit->DimmerSpeed = 0;
+			break;
+		}
+	}
+	void LedLightParamDecrement(void)
+	{
+		switch((LedParamSetPtr/2)+1)
+		{
+		case 1:
+			LedLightActualEdit -> PwmMax--;
+			if(LedLightActualEdit -> PwmMax > 1000) LedLightActualEdit->PwmMax = 1000;
+			break;
+		case 2:
+			LedLightActualEdit -> DimmerSpeed--;
+			if(LedLightActualEdit -> DimmerSpeed > 1000) LedLightActualEdit -> DimmerSpeed = 1000;
+		}
+	}
+	void LedLightParamDecrement25(void)
+	{
+		switch((LedParamSetPtr/2)+1)
+		{
+		case 1:
+			LedLightActualEdit -> PwmMax -= 25;
+			if(LedLightActualEdit -> PwmMax > 1000) LedLightActualEdit->PwmMax = 1000;
+			break;
+		case 2:
+			LedLightActualEdit -> DimmerSpeed -= 25;
+			if(LedLightActualEdit -> DimmerSpeed > 1000) LedLightActualEdit -> DimmerSpeed = 1000;
+		}
+	}
+	void ShowLedLightParamLogo(void)
+	{
+		HideMenu();
+		ActualVisibleFunc = ShowLedLightParamLogo;
+		LedLightActualEdit = &Logo;
+		ShowLedLightParam(LedLightActualEdit);
+	}
+	void ShowLedLightParamLight(void)
+	{
+		HideMenu();
+		ActualVisibleFunc = ShowLedLightParamLight;
+		LedLightActualEdit = &Light;
+		ShowLedLightParam(LedLightActualEdit);
+	}
+
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	if(hadc ->Instance == ADC1)
@@ -629,8 +872,14 @@ void IntervalFunc10000ms(void)
 {
 	if(HAL_GetTick() - OldTick10000ms >10000)
 	{
+		char MsgToSend[255];
 		EepromRefresh(&M24C02);
 
+		sprintf(MsgToSend, "10/0x%lx%lx%lx",
+				HAL_GetUIDw2(),
+				HAL_GetUIDw1(),
+				HAL_GetUIDw0());
+		UsbBuffWrite(MsgToSend);
 		OldTick10000ms = HAL_GetTick();
 	}
 }
@@ -675,7 +924,7 @@ void IntervalFunc100ms(void)
 		 * 0/Input 16bit/Output 16bit/PWM1/PWM2/PWM3/PWM4/Temperature/12V/5V/Current
 		 */
 		sprintf(MsgToSend, "0/%u/%u/%u/%u/%u/%u/%.2f/%.2f/%.2f/%.2f/%.2f",
-									(uint16_t*)((~GPIOG->IDR)&0xff),
+									(unsigned int*)((~GPIOG->IDR)&0xff),
 									(uint16_t*)GPIOE->ODR,
 									(uint16_t*)__HAL_TIM_GetCompare(&htim4, TIM_CHANNEL_1),
 									(uint16_t*)__HAL_TIM_GetCompare(&htim4, TIM_CHANNEL_2),
@@ -687,6 +936,15 @@ void IntervalFunc100ms(void)
 									Measurements.Voltage5,
 									Measurements.Current);
 		UsbBuffWrite(MsgToSend);
+
+		sprintf(MsgToSend, "1/%i/%u/%u/%i/%u/%u",
+				Light.Mode,
+				Light.PwmMax,
+				Light.DimmerSpeed,
+				Logo.Mode,
+				Logo.PwmMax,
+				Logo.DimmerSpeed);
+		UsbBuffWrite(MsgToSend);
 		OldTick100ms = HAL_GetTick();
 	}
 
@@ -696,7 +954,7 @@ void IntervalFunc50ms(void)
 {
 	if(HAL_GetTick() - OldTick50ms >50)
 	{
-		if(ActualVisibleFunc != ShowPWMsetMenu)
+		if(ActualVisibleFunc != ShowPWMsetMenu && ActualVisibleFunc != ShowLedLightParamLight && ActualVisibleFunc != ShowLedLightParamLogo)
 		{
 			EepromBackup(&M24C02);
 		}

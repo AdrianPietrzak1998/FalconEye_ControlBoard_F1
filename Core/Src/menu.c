@@ -33,7 +33,7 @@ static uint8_t MenuGetIndex(menu_t *menu);
 static uint8_t MenuGetLevel(menu_t *menu);
 static void HeaderDraw(char *header);
 
-menu_t menu1 = { "I/O", &menu2, &menu6, &sub_menu1_1, NULL, NULL, 0 };
+menu_t menu1 = { "I/O", &menu2, &menu4, &sub_menu1_1, NULL, NULL, 0 };
 	menu_t sub_menu1_1 = { "OUT 0-7", &sub_menu1_2, &sub_menu1_7, NULL, &menu1, ShowOut0to7 };
 	menu_t sub_menu1_2 = { "OUT 8-15", &sub_menu1_3, &sub_menu1_1, NULL, &menu1, ShowOut8to15 };
 	menu_t sub_menu1_3 = { "PWM", &sub_menu1_4, &sub_menu1_2, NULL, &menu1, ShowPWMsetMenu };
@@ -58,23 +58,37 @@ menu_t menu1 = { "I/O", &menu2, &menu6, &sub_menu1_1, NULL, NULL, 0 };
 		menu_t sub_menu1_6_16 = { "OUT 15", &sub_menu1_6_17, &sub_menu1_6_15, NULL, &sub_menu1_6, SetOut15 };
 		menu_t sub_menu1_6_17 = { BackStr, NULL, &sub_menu1_6_16, NULL, &sub_menu1_6, MenuBack };
 	menu_t sub_menu1_7 = { BackStr, NULL, &sub_menu1_6, NULL, &menu1, MenuBack };
-menu_t menu2 = { "ELEMENT 2", &menu3, &menu1, &sub_menu2_1, NULL, NULL, 0 };
-	menu_t sub_menu2_1 = { "ELEMENT 2_1", &sub_menu2_2, &sub_menu2_4, NULL, &menu2, NULL, 0 };
-	menu_t sub_menu2_2 = { "ELEMENT 2_2", &sub_menu2_3, &sub_menu2_1, &sub_menu2_2_1, &menu2, NULL, 0 };
-		menu_t sub_menu2_2_1 = { "ELEMENT 2_2_1", &sub_menu2_2_2, &sub_menu2_2_5, NULL, &sub_menu2_2, NULL, 1 };
-		menu_t sub_menu2_2_2 = { "ELEMENT 2_2_2", &sub_menu2_2_3, &sub_menu2_2_1, NULL, &sub_menu2_2, NULL, -1 };
-		menu_t sub_menu2_2_3 = { "ELEMENT 2_2_3", &sub_menu2_2_4, &sub_menu2_2_2, NULL, &sub_menu2_2, NULL, 0 };
-		menu_t sub_menu2_2_4 = { "test", &sub_menu2_2_5, &sub_menu2_2_3, NULL, &sub_menu2_2, NULL, -1 };
-		menu_t sub_menu2_2_5 = { BackStr, NULL, &sub_menu2_2_4, NULL, &sub_menu2_2, MenuBack };
-	menu_t sub_menu2_3 = { "ELEMENT 2_3", &sub_menu2_4, &sub_menu2_2, NULL, &menu2, NULL };
-	menu_t sub_menu2_4 = { BackStr, NULL, &sub_menu2_3, NULL, &menu2, MenuBack };
-menu_t menu3 = { "ELEMENT 3", &menu4, &menu2, NULL, NULL, NULL };
-menu_t menu4 = { "ELEMENT 4", &menu5, &menu3, NULL, NULL, NULL };
-menu_t menu5 = { "ELEMENT 5", &menu6, &menu4, NULL, NULL, NULL };
-menu_t menu6 = { "Monitor", NULL, &menu5, &sub_menu6_1, NULL, NULL };
-	menu_t sub_menu6_1 = { "Measurements", &sub_menu6_2, &sub_menu6_3, NULL, &menu6, ShowMeasurements };
-	menu_t sub_menu6_2 = { "Temperature", &sub_menu6_3, &sub_menu6_1, NULL, &menu6, ShowTemperature };
-	menu_t sub_menu6_3 = { BackStr, NULL, &sub_menu6_2, NULL, &menu6, MenuBack };
+menu_t menu2 = { "CAN Bus", &menu3, &menu1, NULL, NULL, NULL };
+menu_t menu3 = { "Settings", &menu4, &menu2, &sub_menu3_1, NULL, NULL };
+	menu_t sub_menu3_1 = {"Logo", &sub_menu3_2, &sub_menu3_4, &sub_menu3_1_1, &menu3, NULL};
+		menu_t sub_menu3_1_1 = {"Mode", &sub_menu3_1_2, &sub_menu3_1_3, &sub_menu3_1_1_1, &sub_menu3_1, NULL};
+			menu_t sub_menu3_1_1_1 = { "Off", &sub_menu3_1_1_2, &sub_menu3_1_1_5, NULL, &sub_menu3_1_1, SetModeLogo0 };
+			menu_t sub_menu3_1_1_2 = { "Open", &sub_menu3_1_1_3, &sub_menu3_1_1_1, NULL, &sub_menu3_1_1, SetModeLogo1 };
+			menu_t sub_menu3_1_1_3 = { "Close", &sub_menu3_1_1_4, &sub_menu3_1_1_2, NULL, &sub_menu3_1_1, SetModeLogo2 };
+			menu_t sub_menu3_1_1_4 = { "Sweep", &sub_menu3_1_1_5, &sub_menu3_1_1_3, NULL, &sub_menu3_1_1, SetModeLogo3 };
+			menu_t sub_menu3_1_1_5 = { BackStr, NULL, &sub_menu3_1_1_4, NULL, &sub_menu3_1_1, MenuBack };
+		menu_t sub_menu3_1_2 = {"Param", &sub_menu3_1_3, &sub_menu3_1_1, NULL, &sub_menu3_1, ShowLedLightParamLogo};
+		menu_t sub_menu3_1_3 = {BackStr, NULL, &sub_menu3_1_2, NULL, &sub_menu3_1, MenuBack};
+	menu_t sub_menu3_2 = {"Int Light", &sub_menu3_3, &sub_menu3_1, &sub_menu3_2_1, &menu3, NULL};
+		menu_t sub_menu3_2_1 = {"Mode", &sub_menu3_2_2, &sub_menu3_2_3, &sub_menu3_2_1_1, &sub_menu3_2, NULL};
+			menu_t sub_menu3_2_1_1 = { "Off", &sub_menu3_2_1_2, &sub_menu3_2_1_5, NULL, &sub_menu3_2_1, SetModeLight0 };
+			menu_t sub_menu3_2_1_2 = { "Open", &sub_menu3_2_1_3, &sub_menu3_2_1_1, NULL, &sub_menu3_2_1, SetModeLight1 };
+			menu_t sub_menu3_2_1_3 = { "Close", &sub_menu3_2_1_4, &sub_menu3_2_1_2, NULL, &sub_menu3_2_1, SetModeLight2 };
+			menu_t sub_menu3_2_1_4 = { "Sweep", &sub_menu3_2_1_5, &sub_menu3_2_1_3, NULL, &sub_menu3_2_1, SetModeLight3 };
+			menu_t sub_menu3_2_1_5 = { BackStr, NULL, &sub_menu3_2_1_4, NULL, &sub_menu3_2_1, MenuBack };
+		menu_t sub_menu3_2_2 = {"Param", &sub_menu3_2_3, &sub_menu3_2_1, NULL, &sub_menu3_2, ShowLedLightParamLight };
+		menu_t sub_menu3_2_3 = {BackStr, NULL, &sub_menu3_2_2, NULL, &sub_menu3_2, MenuBack};
+	menu_t sub_menu3_3 = {"PWM Freq", &sub_menu3_4, &sub_menu3_2, &sub_menu3_3_1, &menu3, NULL};
+		menu_t sub_menu3_3_1 = { "60Hz", &sub_menu3_3_2, &sub_menu3_3_5, NULL, &sub_menu3_3, SetPwmFreq60 };
+		menu_t sub_menu3_3_2 = { "100Hz", &sub_menu3_3_3, &sub_menu3_3_1, NULL, &sub_menu3_3, SetPwmFreq100 };
+		menu_t sub_menu3_3_3 = { "200Hz", &sub_menu3_3_4, &sub_menu3_3_2, NULL, &sub_menu3_3, SetPwmFreq200 };
+		menu_t sub_menu3_3_4 = { "300Hz", &sub_menu3_3_5, &sub_menu3_3_3, NULL, &sub_menu3_3, SetPwmFreq300 };
+		menu_t sub_menu3_3_5 = { BackStr, NULL, &sub_menu3_3_4, NULL, &sub_menu3_3, MenuBack };
+	menu_t sub_menu3_4 = {BackStr, NULL, &sub_menu3_3, NULL, &menu3, MenuBack};
+menu_t menu4 = { "Monitor", NULL, &menu3, &sub_menu4_1, NULL, NULL };
+	menu_t sub_menu4_1 = { "Measurements", &sub_menu4_2, &sub_menu4_3, NULL, &menu4, ShowMeasurements };
+	menu_t sub_menu4_2 = { "Temperature", &sub_menu4_3, &sub_menu4_1, NULL, &menu4, ShowTemperature };
+	menu_t sub_menu4_3 = { BackStr, NULL, &sub_menu4_2, NULL, &menu4, MenuBack };
 
 
 static void HeaderDraw(char *header)
@@ -273,7 +287,10 @@ void MenuRefresh(void)
 	menu_t *temp;
 	uint8_t i;
 
-	if(CurrentPointer->parent == &sub_menu1_6)
+	if( CurrentPointer->parent == &sub_menu1_6 ||
+		CurrentPointer->parent == &sub_menu3_1_1 ||
+		CurrentPointer->parent == &sub_menu3_2_1 ||
+		CurrentPointer->parent == &sub_menu3_3)
 	{
 		MenuIndicatorRefresh();
 	}

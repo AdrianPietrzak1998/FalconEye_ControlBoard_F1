@@ -25,6 +25,8 @@ typedef struct{
 	uint16_t WcPin;
 	uint8_t WcIsZero;
 
+	uint32_t OldTickWriteEeprom;
+
 
 }m24cxx_t;
 

@@ -64,7 +64,7 @@ void MX_GPIO_Init(void)
                           |COMM_RS485_LED_Pin|ERROR_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1|RS485_TXE_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(RS485_TXE_GPIO_Port, RS485_TXE_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(WC_EEPROM_GPIO_Port, WC_EEPROM_Pin, GPIO_PIN_RESET);
@@ -111,12 +111,12 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(SW_OPEN_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA1 PAPin */
-  GPIO_InitStruct.Pin = GPIO_PIN_1|RS485_TXE_Pin;
+  /*Configure GPIO pin : PtPin */
+  GPIO_InitStruct.Pin = RS485_TXE_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(RS485_TXE_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PG0 PG1 PG2 PG3 */
   GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3;
