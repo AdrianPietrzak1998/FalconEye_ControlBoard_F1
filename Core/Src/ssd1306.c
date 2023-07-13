@@ -29,7 +29,10 @@ static void SSD1306_Data(uint8_t *Data, uint16_t Size)
 
 	if(oled_i2c -> hdmatx -> State == HAL_DMA_STATE_READY)
 	{
-		HAL_I2C_Mem_Write_DMA(oled_i2c, (SSD1306_ADRESS<<1), 0x40, 1, Data, Size);
+		if(HAL_I2C_Mem_Write_DMA(oled_i2c, (SSD1306_ADRESS<<1), 0x40, 1, Data, Size) == HAL_ERROR)
+		{
+			ERROR_OLED;
+		}
 	}
 #else
 	HAL_I2C_Mem_Write(oled_i2c, (SSD1306_ADRESS<<1), 0x40, 1, Data, Size, SSD1306_TIMEOUT);

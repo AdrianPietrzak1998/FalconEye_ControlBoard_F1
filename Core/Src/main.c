@@ -71,7 +71,7 @@
 /* USER CODE BEGIN PV */
 button_t KeyUp, KeyDown;
 
-blink_t CommPcUsb;
+blink_t CommPcUsb, ErrorBlink;
 
 RingBuffer_t ReceiveBuffer;
 RingBuffer_t TransmitBuffer;
@@ -124,7 +124,7 @@ LedLightParameter_t Light;
 
 enum PwmFreqency PwmFrequency;
 
-
+volatile struct ErrorCode ErrorCode;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -230,7 +230,7 @@ int main(void)
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
-  SSD1306_Init(&hi2c1, &hdma_memtomem_dma2_channel1);
+  if(SSD1306_Init(&hi2c1, &hdma_memtomem_dma2_channel1) != HAL_OK) ERROR_OLED;
 
   OldTick500ms = HAL_GetTick();
   OldTick100ms = HAL_GetTick();
@@ -239,13 +239,14 @@ int main(void)
 
   if (ds18b20_read_address(ds1) != HAL_OK)
   {
-    Error_Handler();
+    ERROR_DS;
   }
 
   ButtonInitKey(&KeyUp, BUTTON_UP_GPIO_Port, BUTTON_UP_Pin, 20, 1000, 350);
   ButtonInitKey(&KeyDown, BUTTON_DOWN_GPIO_Port, BUTTON_DOWN_Pin, 20, 1000, 350);
 
   LedBlinkInit(&CommPcUsb, COMM_PC_LED_GPIO_Port, COMM_PC_LED_Pin, 20);
+  LedBlinkInit(&ErrorBlink, ERROR_LED_GPIO_Port, ERROR_LED_Pin, 35);
 
   ShowMenu();
 
@@ -271,8 +272,6 @@ int main(void)
 
   EepromInit(&M24C02);
   EepromRecovery();
-
-
 
   while (1)
   {
@@ -309,6 +308,7 @@ int main(void)
 	  ButtonTask(&KeyUp);
 
 	  LedBlinkTask(&CommPcUsb);
+	  LedBlinkTask(&ErrorBlink);
 
 	  MeasurementConversion();
 
@@ -901,7 +901,7 @@ void IntervalFunc500ms(void)
 		  static uint8_t TempMeasureFlag = 0;
 		  if(!TempMeasureFlag)
 		  {
-			  ds18b20_start_measure(NULL);
+			  if (ds18b20_start_measure(NULL) != HAL_OK) ERROR_DS;
 			  TempMeasureFlag = 1;
 		  }
 		  else
@@ -911,6 +911,8 @@ void IntervalFunc500ms(void)
 			  Temperature = Temperature/100;
 			  TempMeasureFlag = 0;
 		  }
+
+			if(ErrorCode.Error > 0) LedBlinkOne(&ErrorBlink);
 	  }
 }
 
@@ -924,7 +926,7 @@ void IntervalFunc100ms(void)
 		 * 0/Input 16bit/Output 16bit/PWM1/PWM2/PWM3/PWM4/Temperature/12V/5V/Current
 		 */
 		sprintf(MsgToSend, "0/%u/%u/%u/%u/%u/%u/%.2f/%.2f/%.2f/%.2f/%.2f",
-									(unsigned int*)((~GPIOG->IDR)&0xff),
+									(uint16_t*)((~GPIOG->IDR)&0xffff),
 									(uint16_t*)GPIOE->ODR,
 									(uint16_t*)__HAL_TIM_GetCompare(&htim4, TIM_CHANNEL_1),
 									(uint16_t*)__HAL_TIM_GetCompare(&htim4, TIM_CHANNEL_2),
@@ -945,6 +947,7 @@ void IntervalFunc100ms(void)
 				Logo.PwmMax,
 				Logo.DimmerSpeed);
 		UsbBuffWrite(MsgToSend);
+
 		OldTick100ms = HAL_GetTick();
 	}
 
@@ -1063,6 +1066,7 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
+  GPIOF -> ODR |= 0x8000;
   while (1)
   {
   }

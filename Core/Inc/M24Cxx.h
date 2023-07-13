@@ -31,9 +31,9 @@ typedef struct{
 }m24cxx_t;
 
 void m24cxxInit(m24cxx_t *m24, I2C_HandleTypeDef *i2c, uint8_t addr, uint16_t memsize, GPIO_TypeDef *WcPort, uint16_t WcPin);
-uint8_t m24cxxRead8Bit(m24cxx_t *m24, uint8_t DataAddr, uint8_t *Data);
+HAL_StatusTypeDef m24cxxRead8Bit(m24cxx_t *m24, uint8_t DataAddr, uint8_t *Data);
 void m24cxxRead8BitWoDma(m24cxx_t *m24, uint8_t DataAddr, uint8_t *Data);
-uint8_t m24cxxWrite8Bit(m24cxx_t *m24, uint8_t DataAddr, uint8_t *Data);
+HAL_StatusTypeDef m24cxxWrite8Bit(m24cxx_t *m24, uint8_t DataAddr, uint8_t *Data);
 void m24cxxWrite8BitWoDma(m24cxx_t *m24, uint8_t DataAddr, uint8_t *Data);
 uint8_t m24cxxRead16Bit(m24cxx_t *m24, uint8_t DataAddr, uint16_t *Data);
 uint8_t m24cxxWrite16Bit(m24cxx_t *m24, uint8_t DataAddr, uint16_t *Data);

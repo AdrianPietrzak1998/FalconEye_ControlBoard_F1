@@ -39,10 +39,10 @@
 ../Core/Src/main.c:863:6:MeasurementConversion	8	static
 ../Core/Src/main.c:871:6:IntervalFunc10000ms	280	static
 ../Core/Src/main.c:888:6:IntervalFunc500ms	8	static
-../Core/Src/main.c:917:6:IntervalFunc100ms	384	static
-../Core/Src/main.c:953:6:IntervalFunc50ms	8	static
-../Core/Src/main.c:976:6:HAL_I2C_MemTxCpltCallback	16	static
-../Core/Src/main.c:981:6:CDC_ReveiveCallback	24	static
-../Core/Src/main.c:1006:6:UsbBuffWrite	32	static
-../Core/Src/main.c:1035:6:UsbTransmitTask	16	static
-../Core/Src/main.c:1061:6:Error_Handler	4	static,ignoring_inline_asm
+../Core/Src/main.c:919:6:IntervalFunc100ms	384	static
+../Core/Src/main.c:956:6:IntervalFunc50ms	8	static
+../Core/Src/main.c:979:6:HAL_I2C_MemTxCpltCallback	16	static
+../Core/Src/main.c:984:6:CDC_ReveiveCallback	24	static
+../Core/Src/main.c:1009:6:UsbBuffWrite	32	static
+../Core/Src/main.c:1038:6:UsbTransmitTask	16	static
+../Core/Src/main.c:1064:6:Error_Handler	4	static,ignoring_inline_asm

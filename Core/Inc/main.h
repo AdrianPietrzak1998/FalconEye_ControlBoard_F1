@@ -55,6 +55,19 @@ enum PwmFreqency{
 	HZ300 = 239
 };
 
+volatile struct ErrorCode{
+	union{
+		uint16_t Error;
+		struct{
+			uint16_t DsError : 1;
+			uint16_t OledError : 1;
+			uint16_t EepromError : 1;
+		};
+	};
+};
+
+extern volatile struct ErrorCode ErrorCode;
+
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -111,7 +124,9 @@ void Error_Handler(void);
 #define WC_EEPROM_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
-
+#define ERROR_DS ErrorCode.DsError = 1
+#define ERROR_OLED ErrorCode.OledError = 1
+#define ERROR_EEPROM ErrorCode.EepromError = 1
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

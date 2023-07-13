@@ -1,6 +1,6 @@
-ds18b20.c:23:19:ds18b20_read_address	4
-ds18b20.c:43:26:send_cmd	4
-ds18b20.c:61:19:ds18b20_start_measure	1
-ds18b20.c:66:26:ds18b20_read_scratchpad	4
-ds18b20.c:84:7:ds18b20_get_temp	2
-ds18b20.c:97:10:ds18b20_get_temp_wo_fp	3
+../Core/Src/ds18b20.c:23:19:ds18b20_read_address	4
+../Core/Src/ds18b20.c:43:26:send_cmd	4
+../Core/Src/ds18b20.c:61:19:ds18b20_start_measure	1
+../Core/Src/ds18b20.c:66:26:ds18b20_read_scratchpad	4
+../Core/Src/ds18b20.c:84:7:ds18b20_get_temp	2
+../Core/Src/ds18b20.c:97:10:ds18b20_get_temp_wo_fp	3

@@ -5,6 +5,7 @@
  *      Author: Adrian
  */
 #include "M24Cxx.h"
+#include "main.h"
 
 
 
@@ -18,7 +19,7 @@ void m24cxxInit(m24cxx_t *m24, I2C_HandleTypeDef *i2c, uint8_t addr, uint16_t me
 	HAL_GPIO_WritePin(m24->WcPort, m24->WcPin, SET);
 }
 
-uint8_t m24cxxRead8Bit(m24cxx_t *m24, uint8_t DataAddr, uint8_t *Data)
+HAL_StatusTypeDef m24cxxRead8Bit(m24cxx_t *m24, uint8_t DataAddr, uint8_t *Data)
 {
 	int32_t i = 0;
 	while((m24->i2c)->hdmarx->State != HAL_DMA_STATE_READY && i<=200000)
@@ -32,6 +33,7 @@ uint8_t m24cxxRead8Bit(m24cxx_t *m24, uint8_t DataAddr, uint8_t *Data)
 	}
 	else
 	{
+		ERROR_EEPROM;
 		return HAL_ERROR;
 	}
 }
@@ -41,7 +43,7 @@ void m24cxxRead8BitWoDma(m24cxx_t *m24, uint8_t DataAddr, uint8_t *Data)
 	HAL_I2C_Mem_Read(m24 ->i2c, m24 -> addr, DataAddr, 1, Data, 1, 500);
 }
 
-uint8_t m24cxxWrite8Bit(m24cxx_t *m24, uint8_t DataAddr, uint8_t *Data)
+HAL_StatusTypeDef m24cxxWrite8Bit(m24cxx_t *m24, uint8_t DataAddr, uint8_t *Data)
 {
 	HAL_GPIO_WritePin(m24->WcPort, m24->WcPin, RESET);
 	m24 -> WcIsZero = 1;
@@ -57,7 +59,7 @@ uint8_t m24cxxWrite8Bit(m24cxx_t *m24, uint8_t DataAddr, uint8_t *Data)
 	return HAL_OK;
 	}
 	else
-	{
+	{	ERROR_EEPROM;
 		return HAL_ERROR;
 	}
 }
