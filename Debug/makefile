@@ -56,6 +56,12 @@ default.size.stdout \
 OBJDUMP_LIST += \
 FalconEye\ ControlBoard.list \
 
+OBJCOPY_HEX += \
+FalconEye\ ControlBoard.hex \
+
+OBJCOPY_BIN += \
+FalconEye\ ControlBoard.bin \
+
 
 # All Target
 all: main-build
@@ -79,12 +85,22 @@ FalconEye\ ControlBoard.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TO
 	@echo 'Finished building: $@'
 	@echo ' '
 
+FalconEye\ ControlBoard.hex: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objcopy  -O ihex $(EXECUTABLES) "FalconEye ControlBoard.hex"
+	@echo 'Finished building: $@'
+	@echo ' '
+
+FalconEye\ ControlBoard.bin: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "FalconEye ControlBoard.bin"
+	@echo 'Finished building: $@'
+	@echo ' '
+
 # Other Targets
 clean:
-	-$(RM) FalconEye\ ControlBoard.elf FalconEye\ ControlBoard.list FalconEye\ ControlBoard.map FalconEye\\ ControlBoard.elf default.size.stdout
+	-$(RM) FalconEye\ ControlBoard.bin FalconEye\ ControlBoard.elf FalconEye\ ControlBoard.hex FalconEye\ ControlBoard.list FalconEye\ ControlBoard.map FalconEye\\ ControlBoard.elf default.size.stdout
 	-@echo ' '
 
-secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
+secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_HEX) $(OBJCOPY_BIN)
 
 fail-specified-linker-script-missing:
 	@echo 'Error: Cannot find the specified linker script. Check the linker settings in the build configuration.'

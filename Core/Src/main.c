@@ -939,13 +939,14 @@ void IntervalFunc100ms(void)
 									Measurements.Current);
 		UsbBuffWrite(MsgToSend);
 
-		sprintf(MsgToSend, "1/%i/%u/%u/%i/%u/%u",
+		sprintf(MsgToSend, "1/%i/%u/%u/%i/%u/%u/%u",
 				Light.Mode,
 				Light.PwmMax,
 				Light.DimmerSpeed,
 				Logo.Mode,
 				Logo.PwmMax,
-				Logo.DimmerSpeed);
+				Logo.DimmerSpeed,
+				ErrorCode.Error);
 		UsbBuffWrite(MsgToSend);
 
 		OldTick100ms = HAL_GetTick();
