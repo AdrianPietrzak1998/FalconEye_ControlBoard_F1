@@ -1,0 +1,41 @@
+### Module positions - created on Tue Mar 21 13:32:38 2023 ###
+### Printed by Pcbnew version (6.0.5)
+## Unit = mm, Angle = deg.
+## Side : bottom
+# Ref     Val            Package                 PosX       PosY       Rot  Side
+D27       D_Zener_Small  D_SOD-123           -71.3250   -61.5500  -90.0000  bottom
+D36       D_Zener_Small  D_SOD-123           -71.4750   -81.4000  -90.0000  bottom
+D37       D_Zener_Small  D_SOD-123           -71.3500   -71.5500  -90.0000  bottom
+D38       D_Zener_Small  D_SOD-123           -71.5500   -91.9250  -90.0000  bottom
+Q36       AO3401A        SOT-23              -85.3440  -102.9970  -90.0000  bottom
+Q37       AO3401A        SOT-23              -85.2170  -122.9360  -90.0000  bottom
+Q38       BC817          SOT-23              -85.3440   -98.8845  -90.0000  bottom
+Q39       BC817          SOT-23              -85.2170  -118.9125  -90.0000  bottom
+Q40       AO3401A        SOT-23              -85.2170  -112.9030  -90.0000  bottom
+Q41       AO3401A        SOT-23              -85.0900  -133.9850  -90.0000  bottom
+Q42       BC817          SOT-23              -85.2250  -108.8375  -90.0000  bottom
+Q43       BC817          SOT-23              -85.0900  -129.9875  -90.0000  bottom
+R31       4k7            R_0603_1608Metric  -224.0788  -139.4592   90.0000  bottom
+R32       4k7            R_0603_1608Metric  -224.0788  -142.7094  -90.0000  bottom
+R33       500            R_0603_1608Metric   -78.4500   -59.0250   90.0000  bottom
+R34       500            R_0603_1608Metric   -78.8000   -79.6000   90.0000  bottom
+R35       500            R_0603_1608Metric   -78.6000   -69.7500   90.0000  bottom
+R36       500            R_0603_1608Metric   -79.0750   -86.8250   90.0000  bottom
+R44       500            R_0603_1608Metric   -78.4250   -65.3000   90.0000  bottom
+R45       500            R_0603_1608Metric   -78.8000   -82.9000   90.0000  bottom
+R46       4k7            R_0603_1608Metric   -94.7000   -74.0250   90.0000  bottom
+R47       4k7            R_0603_1608Metric   -94.5000   -84.3250   90.0000  bottom
+R48       500            R_0603_1608Metric   -78.6000   -74.9750   90.0000  bottom
+R49       500            R_0603_1608Metric   -79.0750   -90.0500   90.0000  bottom
+R50       4k7            R_0603_1608Metric   -94.5000   -79.1250   90.0000  bottom
+R51       4k7            R_0603_1608Metric   -94.4250   -89.5750   90.0000  bottom
+R96       10k            R_0603_1608Metric   -87.8840  -100.2670   90.0000  bottom
+R97       10k            R_0603_1608Metric   -87.7570  -120.8410   90.0000  bottom
+R98       1k             R_0603_1608Metric   -85.1540   -96.0120  180.0000  bottom
+R99       1k             R_0603_1608Metric   -85.2170  -115.9510  180.0000  bottom
+R100      10k            R_0603_1608Metric   -87.7570  -110.8080   90.0000  bottom
+R101      10k            R_0603_1608Metric   -87.6300  -131.4450   90.0000  bottom
+R102      1k             R_0603_1608Metric   -85.2170  -105.9180  180.0000  bottom
+R103      1k             R_0603_1608Metric   -85.0900  -127.0000  180.0000  bottom
+U4        LTV-847S       SMDIP-16_W9.53mm    -87.4000   -81.9500    0.0000  bottom
+## End

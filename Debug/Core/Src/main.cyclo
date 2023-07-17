@@ -40,9 +40,9 @@
 ../Core/Src/main.c:871:6:IntervalFunc10000ms	2
 ../Core/Src/main.c:888:6:IntervalFunc500ms	5
 ../Core/Src/main.c:919:6:IntervalFunc100ms	2
-../Core/Src/main.c:957:6:IntervalFunc50ms	6
-../Core/Src/main.c:980:6:HAL_I2C_MemTxCpltCallback	1
-../Core/Src/main.c:985:6:CDC_ReveiveCallback	5
-../Core/Src/main.c:1010:6:UsbBuffWrite	4
-../Core/Src/main.c:1039:6:UsbTransmitTask	3
-../Core/Src/main.c:1065:6:Error_Handler	1
+../Core/Src/main.c:958:6:IntervalFunc50ms	6
+../Core/Src/main.c:981:6:HAL_I2C_MemTxCpltCallback	1
+../Core/Src/main.c:986:6:CDC_ReveiveCallback	5
+../Core/Src/main.c:1011:6:UsbBuffWrite	4
+../Core/Src/main.c:1040:6:UsbTransmitTask	3
+../Core/Src/main.c:1066:6:Error_Handler	1
