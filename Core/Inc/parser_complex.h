@@ -31,7 +31,8 @@ typedef enum{
 	PWM_CHANNEL_SET,
 	DISPLAY_CONTRAST,
 	LIGHT_PARAM,
-	LOGO_PARAM
+	LOGO_PARAM,
+	BOOTLOADER_JUMP
 
 }ReceivedCommand_t;
 
@@ -53,6 +54,7 @@ extern void PwmChannelSet(uint8_t Channel, uint16_t Value);
 extern void DisplayContrast(uint8_t Contrast);
 extern void LightLedSetParameter(uint8_t Mode, uint16_t PwmValue, uint16_t DimmerSpeed);
 extern void LogoLedSetParameter(uint8_t Mode, uint16_t PwmValue, uint16_t DimmerSpeed);
+extern void BootloaderJump(uint16_t Code);
 //
 //
 //

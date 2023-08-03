@@ -69,6 +69,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+const char Version[] = "1.0";
+
 button_t KeyUp, KeyDown;
 
 blink_t CommPcUsb, ErrorBlink;
@@ -125,6 +127,8 @@ LedLightParameter_t Light;
 enum PwmFreqency PwmFrequency;
 
 volatile struct ErrorCode ErrorCode;
+
+uint8_t CommandToJump = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -181,6 +185,11 @@ void PwmFreqSet(uint16_t PwmFrequency);
 
 void (*ActualVisibleFunc)(void);
 
+//BootloaderJump
+void jump_to_application(uint32_t const app_address);
+void deinit_peripherals(void);
+void BootloaderJump(uint16_t Code);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -195,7 +204,8 @@ void (*ActualVisibleFunc)(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+	__asm__ volatile("ldr r10, =0x0000");
+	__enable_irq(); // turn on irq
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -276,6 +286,10 @@ int main(void)
   while (1)
   {
 
+	  if(CommandToJump == 1)
+	  {
+		  jump_to_application(0x8000000);
+	  }
 
 	  if(LineCounter)
 	  {
@@ -860,6 +874,12 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	}
 }
 
+void BootloaderJump(uint16_t Code)
+{
+	if(Code == 1234)
+	CommandToJump = 1;
+}
+
 void MeasurementConversion(void)
 {
 	Measurements.Voltage12 = Measurements.Voltage12Raw /1241.0F * 5;
@@ -875,10 +895,11 @@ void IntervalFunc10000ms(void)
 		char MsgToSend[255];
 		EepromRefresh(&M24C02);
 
-		sprintf(MsgToSend, "10/0x%lx%lx%lx",
+		sprintf(MsgToSend, "10/0x%lx%lx%lx/%s",
 				HAL_GetUIDw2(),
 				HAL_GetUIDw1(),
-				HAL_GetUIDw0());
+				HAL_GetUIDw0(),
+				Version);
 		UsbBuffWrite(MsgToSend);
 		OldTick10000ms = HAL_GetTick();
 	}
@@ -1056,6 +1077,74 @@ void UsbTransmitTask(void)
 		} while(tmp != '^');
 
 		CDC_Transmit_FS(TransmitData, i);
+}
+
+void deinit_peripherals(void)
+{
+
+	__disable_irq();
+	NVIC_DisableIRQ(USB_LP_CAN1_RX0_IRQn);
+	USBD_Stop(&hUsbDeviceFS);
+	USBD_DeInit(&hUsbDeviceFS);
+	__HAL_RCC_USB_CLK_DISABLE();
+	memset(&hUsbDeviceFS, 0, sizeof(USBD_HandleTypeDef));
+
+	  HAL_GPIO_DeInit(COMM_PC_LED_GPIO_Port, COMM_PC_LED_Pin);
+	  HAL_GPIO_DeInit(ERROR_LED_GPIO_Port, ERROR_LED_Pin);
+	  HAL_GPIO_DeInit(GPIOG, 0); HAL_GPIO_DeInit(GPIOG, 1); HAL_GPIO_DeInit(GPIOG, 2); HAL_GPIO_DeInit(GPIOG, 3); HAL_GPIO_DeInit(GPIOG, 4);
+	  HAL_GPIO_DeInit(GPIOG, 5); HAL_GPIO_DeInit(GPIOG, 6); HAL_GPIO_DeInit(GPIOG, 7); HAL_GPIO_DeInit(GPIOG, 8); HAL_GPIO_DeInit(GPIOG, 9);
+	  HAL_GPIO_DeInit(GPIOG, 10); HAL_GPIO_DeInit(GPIOG, 11); HAL_GPIO_DeInit(GPIOG, 12); HAL_GPIO_DeInit(GPIOG, 13); HAL_GPIO_DeInit(GPIOG, 14);
+	  HAL_GPIO_DeInit(GPIOG, 15); HAL_GPIO_DeInit(GPIOE, 0); HAL_GPIO_DeInit(GPIOE, 1); HAL_GPIO_DeInit(GPIOE, 2); HAL_GPIO_DeInit(GPIOE, 3);
+	  HAL_GPIO_DeInit(GPIOE, 4); HAL_GPIO_DeInit(GPIOE, 5); HAL_GPIO_DeInit(GPIOE, 6); HAL_GPIO_DeInit(GPIOE, 7); HAL_GPIO_DeInit(GPIOE, 8);
+	  HAL_GPIO_DeInit(GPIOE, 9); HAL_GPIO_DeInit(GPIOE, 10); HAL_GPIO_DeInit(GPIOE, 11); HAL_GPIO_DeInit(GPIOE, 12); HAL_GPIO_DeInit(GPIOE, 13);
+	  HAL_GPIO_DeInit(GPIOE, 14); HAL_GPIO_DeInit(GPIOE, 15); HAL_GPIO_DeInit(GPIOF, 10); HAL_GPIO_DeInit(GPIOE, 11); HAL_GPIO_DeInit(GPIOE, 12);
+	  HAL_GPIO_DeInit(GPIOE, 13); HAL_GPIO_DeInit(GPIOE, 14); HAL_GPIO_DeInit(GPIOE, 15); HAL_GPIO_DeInit(GPIOD, 12); HAL_GPIO_DeInit(GPIOD, 13);
+	  HAL_GPIO_DeInit(GPIOD, 14); HAL_GPIO_DeInit(GPIOD, 15); HAL_GPIO_DeInit(SW_OPEN_GPIO_Port, SW_OPEN_Pin); HAL_GPIO_DeInit(RS485_TXE_GPIO_Port, RS485_TXE_Pin);
+	  HAL_GPIO_DeInit(WC_EEPROM_GPIO_Port, WC_EEPROM_Pin); HAL_GPIO_DeInit(BUTTON_DOWN_GPIO_Port, BUTTON_DOWN_Pin);
+	  HAL_GPIO_DeInit(BUTTON_UP_GPIO_Port, BUTTON_UP_Pin);
+	  //DMA Deinit
+	  HAL_DMA_DeInit(&hdma_memtomem_dma2_channel1);
+	  //TIM Deinit
+	  __HAL_RCC_TIM3_CLK_DISABLE();
+	  __HAL_RCC_TIM4_CLK_DISABLE();
+	  __HAL_RCC_TIM5_CLK_DISABLE();
+
+	  HAL_UART_DeInit(&huart1);
+	  HAL_UART_DeInit(&huart2);
+	  HAL_UART_DeInit(&huart3);
+
+	  HAL_I2C_DeInit(&hi2c1);
+
+	  HAL_ADC_Stop_DMA(&hadc1);
+	  HAL_ADC_DeInit(&hadc1);
+
+
+	  HAL_DeInit();
+
+	 //IWDG->KR = 0xAAAA; //Unlock key Register
+	 //IWDG->KR = 0x0000; //Deactive IWDG
+
+
+	  SysTick->CTRL = 0;
+	  SysTick->LOAD = 0;
+	  SysTick->VAL = 0;
+
+}
+
+void jump_to_application(uint32_t const app_address) {
+	for (uint8_t i = 0; i < 8; i++) {
+	        NVIC->ICER[i] = 0xFFFFFFFF;
+	    }
+  typedef void (*jumpFunction)(); // helper-typedef
+  uint32_t const jumpAddress = *(__IO uint32_t*) (app_address + 4); // Address of application's Reset Handler
+  jumpFunction runApplication =  jumpAddress; // Function we'll use to jump to application
+
+
+  deinit_peripherals(); // Deinitialization of peripherals and systick
+
+  __set_MSP(*((__IO uint32_t*) app_address)); // Stack pointer setup
+  __asm__ volatile("ldr r10, =0x1234");
+  runApplication(); // Jump to application
 }
 /* USER CODE END 4 */
 

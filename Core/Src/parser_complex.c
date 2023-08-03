@@ -26,7 +26,8 @@ struct Command CommandMapper[] = {
 		{PWM_CHANNEL_SET, PwmChannelSet, 2},
 		{DISPLAY_CONTRAST, DisplayContrast, 1},
 		{LIGHT_PARAM, LightLedSetParameter, 3},
-		{LOGO_PARAM, LogoLedSetParameter, 3}
+		{LOGO_PARAM, LogoLedSetParameter, 3},
+		{BOOTLOADER_JUMP, BootloaderJump, 1}
 };
 
 void Parser_TakeLine(RingBuffer_t *Buff, uint8_t *Destination)
